@@ -2,6 +2,8 @@
 
 **Equipo:** Guardianes de la costera · Taller Scrum · Ingeniería de Sistemas
 
+**Integrantes:** Kemmell Cabanna · Arnold Cantillo · Jaider Lozano · Sebastian Murcia · Johan Viviescas
+
 Herramienta para planificar la ruta más corta con la que una lancha recolecta residuos acuáticos acumulados en dársenas, muelles y desembocaduras.
 
 > **Simulador en vivo:** https://arnoldcantillo.github.io/guardianes-de-la-costa/
