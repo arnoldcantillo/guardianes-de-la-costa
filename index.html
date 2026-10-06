@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Simulador de historias · Guardianes de la costera</title>
+<style>
+:root {
+  --bg: #f3f6f8; --panel: #ffffff; --ink: #14232e; --mute: #5b6b78; --line: #d8e0e6;
+  --brand: #0b6e8f; --brand-ink: #ffffff; --ok: #0a7d2c; --ok-bg: #e4f5ea;
+  --mal: #b00020; --mal-bg: #fbe6ea; --warn: #9a6700; --warn-bg: #fff4d6;
+  --code-bg: #f0f4f7; --map-water: #e8f3f8; --map-line: #0b6e8f;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1a22; --panel: #15252f; --ink: #e6eef3; --mute: #9db0bc; --line: #26404f;
+    --brand: #3fb6d9; --brand-ink: #04202b; --ok: #5fd68a; --ok-bg: #12301f;
+    --mal: #ff7b8f; --mal-bg: #3a1620; --warn: #f0c24b; --warn-bg: #34290d;
+    --code-bg: #0f1d26; --map-water: #112733; --map-line: #3fb6d9;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1a22; --panel: #15252f; --ink: #e6eef3; --mute: #9db0bc; --line: #26404f;
+  --brand: #3fb6d9; --brand-ink: #04202b; --ok: #5fd68a; --ok-bg: #12301f;
+  --mal: #ff7b8f; --mal-bg: #3a1620; --warn: #f0c24b; --warn-bg: #34290d;
+  --code-bg: #0f1d26; --map-water: #112733; --map-line: #3fb6d9;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+header { background: var(--panel); border-bottom: 1px solid var(--line); padding: 14px 20px; display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+header h1 { font-size: 1.15rem; margin: 0; }
+header p { margin: 0; color: var(--mute); font-size: .9rem; }
+header .grow { flex: 1 1 260px; }
+.chip { padding: 6px 12px; border-radius: 999px; font-weight: 600; font-size: .9rem; background: var(--code-bg); border: 1px solid var(--line); }
+.chip.ok { background: var(--ok-bg); color: var(--ok); border-color: transparent; }
+.chip.mal { background: var(--mal-bg); color: var(--mal); border-color: transparent; }
+.layout { display: grid; grid-template-columns: 270px 1fr; gap: 20px; padding: 20px; max-width: 1280px; margin: 0 auto; }
+nav { display: flex; flex-direction: column; gap: 4px; position: sticky; top: 12px; align-self: start; max-height: calc(100vh - 24px); overflow: auto; }
+nav button { all: unset; cursor: pointer; display: flex; gap: 10px; align-items: center; padding: 8px 12px; border-radius: 8px; font-size: .92rem; border: 1px solid transparent; }
+nav button:hover { background: var(--panel); }
+nav button:focus-visible, .btn:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+nav button[aria-current="page"] { background: var(--panel); border-color: var(--line); font-weight: 600; }
+nav .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--line); flex: none; }
+nav .dot.ok { background: var(--ok); } nav .dot.mal { background: var(--mal); } nav .dot.warn { background: var(--warn); }
+nav .id { font-variant-numeric: tabular-nums; font-weight: 600; min-width: 62px; white-space: nowrap; }
+nav .t { color: var(--mute); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+main { min-width: 0; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 18px; margin-bottom: 14px; }
+h2 { margin: 0 0 4px; font-size: 1.35rem; }
+.historia { color: var(--mute); margin: 6px 0 0; }
+.btn { cursor: pointer; border: 1px solid var(--brand); background: var(--brand); color: var(--brand-ink); padding: 8px 16px; border-radius: 8px; font: inherit; font-weight: 600; }
+.btn.sec { background: transparent; color: var(--brand); }
+.btn:disabled { opacity: .5; cursor: default; }
+.crit { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: start; }
+.crit .n { font-size: .8rem; font-weight: 700; color: var(--brand); text-transform: uppercase; letter-spacing: .04em; }
+.crit p { margin: 2px 0 0; }
+.res { margin-top: 12px; border-radius: 8px; padding: 12px; border: 1px solid transparent; }
+.res.ok { background: var(--ok-bg); } .res.mal { background: var(--mal-bg); }
+.badge { font-weight: 700; font-size: .85rem; }
+.res.ok .badge { color: var(--ok); } .res.mal .badge { color: var(--mal); }
+pre { margin: 6px 0 0; white-space: pre-wrap; word-break: break-word; font: .9rem/1.5 ui-monospace, Consolas, monospace; color: var(--ink); }
+.acciones { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+.descarga { margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap; }
+.descarga a { color: var(--brand); font-weight: 600; }
+label { display: block; font-size: .85rem; color: var(--mute); margin-bottom: 4px; }
+input, textarea { width: 100%; font: inherit; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--ink); }
+textarea { font-family: ui-monospace, Consolas, monospace; font-size: .9rem; min-height: 130px; }
+.fila { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+svg.mapa { width: 100%; height: auto; border-radius: 10px; background: var(--map-water); border: 1px solid var(--line); margin-top: 12px; }
+svg.mapa text { fill: var(--ink); font: 12px system-ui, sans-serif; }
+.barra { height: 10px; border-radius: 999px; background: var(--code-bg); overflow: hidden; margin: 8px 0 14px; }
+.barra > div { height: 100%; background: var(--ok); width: 0; transition: width .2s; }
+.lista { list-style: none; margin: 0; padding: 0; }
+.lista li { display: flex; gap: 10px; padding: 6px 0; border-bottom: 1px solid var(--line); }
+.lista li:last-child { border: 0; }
+.lista .m { font-weight: 700; flex: none; width: 20px; }
+.lista .ok .m { color: var(--ok); } .lista .mal .m { color: var(--mal); }
+.lista .hu { font-weight: 600; flex: none; min-width: 74px; }
+#carga { position: fixed; inset: 0; background: var(--bg); display: grid; place-items: center; z-index: 10; text-align: center; padding: 20px; }
+#carga .spin { width: 38px; height: 38px; border: 4px solid var(--line); border-top-color: var(--brand); border-radius: 50%; animation: g 1s linear infinite; margin: 0 auto 14px; }
+@keyframes g { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { #carga .spin { animation: none; } .barra > div { transition: none; } }
+@media (max-width: 860px) {
+  .layout { grid-template-columns: 1fr; padding: 16px; }
+  nav { position: static; flex-direction: row; overflow-x: auto; max-height: none; padding-bottom: 4px; }
+  nav button { flex: none; } nav .t { display: none; }
+  .fila { grid-template-columns: 1fr; }
+  .crit { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<div id="carga" role="status">
+  <div><div class="spin"></div><strong id="carga-t">Cargando Python en el navegador…</strong>
+  <p id="carga-d" style="color:var(--mute);max-width:420px">La primera vez tarda unos segundos. Es el mismo código Python del repositorio.</p></div>
+</div>
+<header>
+  <div class="grow">
+    <h1>Optimizador de enrutamiento costero</h1>
+    <p>Simulador de las 14 historias de usuario · Guardianes de la costera</p>
+  </div>
+  <span class="chip" id="total">0 de 42 criterios cumplidos</span>
+</header>
+<div class="layout">
+  <nav id="nav" aria-label="Historias de usuario"></nav>
+  <main id="main"></main>
+</div>
+
+<script>
+const PYODIDE_URL = "https://cdn.jsdelivr.net/pyodide/v314.0.7/full/pyodide.js";
+const MODULOS = ["__init__", "nucleo", "hu01_asignar_cuadrilla", "hu02_coordenadas", "hu03_panel", "hu04_ahorro",
+  "hu05_omitir_punto", "hu06_embarcacion", "hu07_registro_kg", "hu08_validacion", "hu09_alerta_combustible",
+  "hu10_tipo_residuo", "hu11_historial", "hu12_exportar", "hu13_auditoria", "hu14_muelles", "escenarios", "web_api"];
+const ESCENARIO_DEFECTO = {
+  base: { nombre: "Muelle Centro", lat: 10.96, lon: -74.80 },
+  puntos: [
+    { nombre: "Dársena 1", lat: 10.99, lon: -74.85 }, { nombre: "Desembocadura", lat: 10.93, lon: -74.78 },
+    { nombre: "Canal Norte", lat: 11.02, lon: -74.79 }, { nombre: "Muelle viejo", lat: 10.95, lon: -74.88 }]
+};
+
+let api, catalogo = [];
+let escenario = JSON.parse(JSON.stringify(ESCENARIO_DEFECTO));
+let borrador = null;            // texto del formulario del escenario
+let resultadoEscenario = null;  // {ok, texto, mapa}
+const resultados = {};          // "i-j" -> {ok, texto, archivos}
+let vista = "escenario";
+let resumenEstado = { corriendo: false };
+
+const $ = (id) => document.getElementById(id);
+function el(tag, props = {}, ...hijos) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(props)) {
+    if (k === "class") e.className = v;
+    else if (k.startsWith("on")) e.addEventListener(k.slice(2), v);
+    else if (v !== false && v != null) e.setAttribute(k, v === true ? "" : v);
+  }
+  for (const h of hijos.flat()) if (h != null) e.append(h.nodeType ? h : document.createTextNode(h));
+  return e;
+}
+const pausa = () => new Promise((r) => setTimeout(r, 0));
+
+/* ------------------------------------------------------------ arranque */
+async function iniciar() {
+  try {
+    await new Promise((ok, fallo) => {
+      const s = el("script", { src: PYODIDE_URL });
+      s.onload = ok; s.onerror = () => fallo(new Error("No se pudo descargar Pyodide (sin internet o bloqueado)."));
+      document.head.append(s);
+    });
+    const py = await loadPyodide();
+    py.FS.mkdir("guardianes");
+    $("carga-t").textContent = "Cargando el código de las historias…";
+    await Promise.all(MODULOS.map(async (m) => {
+      const r = await fetch(`guardianes/${m}.py`);
+      if (!r.ok) throw new Error(`No se encontró guardianes/${m}.py`);
+      py.FS.writeFile(`guardianes/${m}.py`, await r.text());
+    }));
+    api = py.pyimport("guardianes.web_api");
+    catalogo = JSON.parse(api.catalogo());
+    resultadoEscenario = JSON.parse(api.aplicar_escenario(JSON.stringify(escenario)));
+    $("carga").remove();
+    ir("escenario");
+  } catch (e) {
+    $("carga").querySelector(".spin")?.remove();
+    $("carga-t").textContent = "No se pudo iniciar el simulador";
+    let d = e.message || String(e);
+    if (location.protocol === "file:") d += " Abre la página desde su enlace de GitHub Pages, o con «py -m http.server» en la carpeta del repo.";
+    $("carga-d").textContent = d;
+  }
+}
+
+/* ----------------------------------------------------------- navegación */
+function estadoHistoria(i) {
+  const r = catalogo[i].criterios.map((_, j) => resultados[`${i}-${j}`]);
+  const hechos = r.filter(Boolean);
+  if (!hechos.length) return "";
+  if (hechos.some((x) => !x.ok)) return "mal";
+  return hechos.length === r.length ? "ok" : "warn";
+}
+function dibujarNav() {
+  const nav = $("nav");
+  nav.replaceChildren();
+  const item = (clave, id, titulo, estado) => el("button", {
+    "aria-current": vista === clave ? "page" : null, onclick: () => ir(clave)
+  }, el("span", { class: "dot " + (estado || "") }), el("span", { class: "id" }, id), el("span", { class: "t" }, titulo));
+  nav.append(item("escenario", "Datos", "Escenario", resultadoEscenario?.ok ? "ok" : "mal"));
+  catalogo.forEach((h, i) => nav.append(item(String(i), h.id, h.titulo, estadoHistoria(i))));
+  nav.append(item("resumen", "Todo", "Resumen de los 42 criterios", ""));
+}
+function actualizarTotal() {
+  const lista = Object.values(resultados);
+  const cumplen = lista.filter((r) => r.ok).length;
+  const chip = $("total");
+  chip.textContent = lista.length ? `${cumplen} de 42 criterios cumplidos` : "0 de 42 criterios cumplidos";
+  chip.className = "chip" + (lista.length && lista.every((r) => r.ok) && lista.length === 42 ? " ok" : lista.some((r) => !r.ok) ? " mal" : "");
+}
+function ir(v) {
+  vista = v;
+  dibujarNav();
+  actualizarTotal();
+  const main = $("main");
+  main.replaceChildren(v === "escenario" ? vistaEscenario() : v === "resumen" ? vistaResumen() : vistaHistoria(Number(v)));
+}
+
+/* ------------------------------------------------------------- historias */
+function bloqueResultado(r) {
+  if (!r) return null;
+  const caja = el("div", { class: "res " + (r.ok ? "ok" : "mal"), role: "status" },
+    el("div", { class: "badge" }, r.ok ? "✔ CUMPLE" : "✘ NO CUMPLE"), el("pre", {}, r.texto));
+  if (r.archivos?.length) {
+    const d = el("div", { class: "descarga" });
+    for (const a of r.archivos) {
+      const bytes = Uint8Array.from(atob(a.base64), (c) => c.charCodeAt(0));
+      const url = URL.createObjectURL(new Blob([bytes], { type: a.mime }));
+      d.append(el("a", { href: url, download: a.nombre, target: "_blank", rel: "noopener" }, `Descargar ${a.nombre}`));
+    }
+    caja.append(d);
+  }
+  return caja;
+}
+function ejecutarCriterio(i, j) {
+  resultados[`${i}-${j}`] = JSON.parse(api.ejecutar(i, j, JSON.stringify(escenario)));
+}
+function vistaHistoria(i) {
+  const h = catalogo[i];
+  const cont = el("div");
+  cont.append(el("div", { class: "card" }, el("h2", {}, `${h.id} · ${h.titulo}`), el("p", { class: "historia" }, h.historia),
+    el("div", { class: "acciones" },
+      el("button", { class: "btn", onclick: () => { h.criterios.forEach((_, j) => ejecutarCriterio(i, j)); ir(String(i)); } }, "Probar los 3 criterios"),
+      el("button", { class: "btn sec", onclick: () => { h.criterios.forEach((_, j) => delete resultados[`${i}-${j}`]); ir(String(i)); } }, "Limpiar"))));
+  h.criterios.forEach((desc, j) => {
+    cont.append(el("div", { class: "card" },
+      el("div", { class: "crit" },
+        el("div", {}, el("div", { class: "n" }, `Criterio ${j + 1}`), el("p", {}, desc)),
+        el("button", { class: "btn", onclick: () => { ejecutarCriterio(i, j); ir(String(i)); } }, "Probar")),
+      bloqueResultado(resultados[`${i}-${j}`])));
+  });
+  return cont;
+}
+
+/* -------------------------------------------------------------- escenario */
+function textoPuntos(p) { return p.map((x) => `${x.nombre}, ${x.lat}, ${x.lon}`).join("\n"); }
+function mapaSVG(m) {
+  const todos = [m.base, ...m.ruta];
+  const lats = todos.map((p) => p.lat), lons = todos.map((p) => p.lon);
+  const [la0, la1, lo0, lo1] = [Math.min(...lats), Math.max(...lats), Math.min(...lons), Math.max(...lons)];
+  const W = 640, H = 340, pad = 50;
+  const x = (lo) => pad + (lo1 === lo0 ? (W - 2 * pad) / 2 : ((lo - lo0) / (lo1 - lo0)) * (W - 2 * pad));
+  const y = (la) => H - pad - (la1 === la0 ? (H - 2 * pad) / 2 : ((la - la0) / (la1 - la0)) * (H - 2 * pad));
+  const ns = "http://www.w3.org/2000/svg";
+  const s = (tag, attrs, txt) => { const e = document.createElementNS(ns, tag); for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v); if (txt) e.textContent = txt; return e; };
+  const svg = s("svg", { viewBox: `0 0 ${W} ${H}`, class: "mapa", role: "img", "aria-label": "Mapa esquemático de la ruta óptima" });
+  const camino = [m.base, ...m.ruta, m.base];
+  svg.append(s("polyline", { points: camino.map((p) => `${x(p.lon)},${y(p.lat)}`).join(" "), fill: "none", stroke: "var(--map-line)", "stroke-width": 2.5, "stroke-dasharray": "7 5" }));
+  m.ruta.forEach((p, k) => {
+    svg.append(s("circle", { cx: x(p.lon), cy: y(p.lat), r: 11, fill: "var(--map-line)" }));
+    svg.append(s("text", { x: x(p.lon), y: y(p.lat) + 4, "text-anchor": "middle", style: "fill:var(--brand-ink);font-weight:700" }, String(k + 1)));
+    const izq = x(p.lon) > W - 170;
+    svg.append(s("text", { x: x(p.lon) + (izq ? -15 : 15), y: y(p.lat) + 4, "text-anchor": izq ? "end" : "start" }, p.nombre));
+  });
+  svg.append(s("rect", { x: x(m.base.lon) - 9, y: y(m.base.lat) - 9, width: 18, height: 18, fill: "var(--ok)" }));
+  const izqB = x(m.base.lon) > W - 200;
+  svg.append(s("text", { x: x(m.base.lon) + (izqB ? -15 : 15), y: y(m.base.lat) + 4, "text-anchor": izqB ? "end" : "start", style: "font-weight:700" }, `${m.base.nombre} (base)`));
+  return svg;
+}
+function vistaEscenario() {
+  borrador ??= { nombre: escenario.base.nombre, lat: String(escenario.base.lat), lon: String(escenario.base.lon), puntos: textoPuntos(escenario.puntos) };
+  const nombre = el("input", { id: "b-n", value: borrador.nombre });
+  const lat = el("input", { id: "b-la", value: borrador.lat, inputmode: "decimal" });
+  const lon = el("input", { id: "b-lo", value: borrador.lon, inputmode: "decimal" });
+  const puntos = el("textarea", { id: "b-p", spellcheck: "false" }, borrador.puntos);
+  const salida = el("div");
+  const pintar = (r) => { salida.replaceChildren(bloqueResultado(r)); if (r.mapa) salida.append(mapaSVG(r.mapa)); };
+  if (resultadoEscenario) pintar(resultadoEscenario);
+  const aplicar = () => {
+    borrador = { nombre: nombre.value, lat: lat.value, lon: lon.value, puntos: puntos.value };
+    const lineas = puntos.value.split("\n").map((l) => l.trim()).filter(Boolean);
+    const nuevos = [];
+    for (const [n, l] of lineas.entries()) {
+      const partes = l.split(",").map((t) => t.trim());
+      if (partes.length !== 3) { pintar({ ok: false, texto: `Línea ${n + 1}: use «nombre, latitud, longitud»` }); return; }
+      nuevos.push({ nombre: partes[0], lat: partes[1], lon: partes[2] });
+    }
+    const candidato = { base: { nombre: nombre.value, lat: lat.value, lon: lon.value }, puntos: nuevos };
+    const r = JSON.parse(api.aplicar_escenario(JSON.stringify(candidato)));
+    if (r.ok) {
+      escenario = { base: { nombre: nombre.value.trim(), lat: Number(lat.value), lon: Number(lon.value) },
+                    puntos: nuevos.map((p) => ({ nombre: p.nombre, lat: Number(p.lat), lon: Number(p.lon) })) };
+      Object.keys(resultados).forEach((k) => delete resultados[k]);
+    }
+    if (r.ok) resultadoEscenario = r;
+    dibujarNav(); actualizarTotal(); pintar(r);
+  };
+  const restablecer = () => { escenario = JSON.parse(JSON.stringify(ESCENARIO_DEFECTO)); borrador = null; Object.keys(resultados).forEach((k) => delete resultados[k]); resultadoEscenario = JSON.parse(api.aplicar_escenario(JSON.stringify(escenario))); ir("escenario"); };
+  return el("div", {},
+    el("div", { class: "card" }, el("h2", {}, "Datos de la jornada"),
+      el("p", { class: "historia" }, "Todas las pruebas de las historias usan estos datos. Puedes cambiarlos y volver a aplicarlos: las pruebas ya hechas se reinician."),
+      el("div", { class: "fila", style: "margin-top:14px" },
+        el("div", {}, el("label", { for: "b-n" }, "Base"), nombre), el("div", {}, el("label", { for: "b-la" }, "Latitud"), lat), el("div", {}, el("label", { for: "b-lo" }, "Longitud"), lon)),
+      el("label", { for: "b-p" }, "Puntos de acumulación, en el orden de ingreso (uno por línea: nombre, latitud, longitud)"), puntos,
+      el("div", { class: "acciones" }, el("button", { class: "btn", onclick: aplicar }, "Aplicar y calcular ruta óptima"), el("button", { class: "btn sec", onclick: restablecer }, "Restablecer datos de ejemplo"))),
+    el("div", { class: "card" }, salida));
+}
+
+/* ---------------------------------------------------------------- resumen */
+function vistaResumen() {
+  const total = catalogo.reduce((a, h) => a + h.criterios.length, 0);
+  const lista = el("ul", { class: "lista" });
+  const barra = el("div"); const progreso = el("div", { class: "barra" }, barra);
+  const titulo = el("h2", {}, "Resumen de las 14 historias");
+  const boton = el("button", { class: "btn", disabled: resumenEstado.corriendo }, "Ejecutar los 42 criterios");
+  const pintarLista = () => {
+    lista.replaceChildren();
+    catalogo.forEach((h, i) => h.criterios.forEach((desc, j) => {
+      const r = resultados[`${i}-${j}`];
+      lista.append(el("li", { class: r ? (r.ok ? "ok" : "mal") : "" }, el("span", { class: "m" }, r ? (r.ok ? "✔" : "✘") : "·"), el("span", { class: "hu" }, `${h.id} · ${j + 1}`), el("span", {}, desc)));
+    }));
+    const hechos = Object.keys(resultados).length;
+    barra.style.width = `${(100 * hechos) / total}%`;
+  };
+  boton.addEventListener("click", async () => {
+    resumenEstado.corriendo = true; boton.disabled = true;
+    for (let i = 0; i < catalogo.length; i++) {
+      for (let j = 0; j < catalogo[i].criterios.length; j++) { ejecutarCriterio(i, j); pintarLista(); actualizarTotal(); dibujarNav(); await pausa(); }
+    }
+    resumenEstado.corriendo = false; boton.disabled = false;
+    const cumplen = Object.values(resultados).filter((r) => r.ok).length;
+    titulo.textContent = `${cumplen} de ${total} criterios cumplidos`;
+  });
+  pintarLista();
+  const hechos = Object.values(resultados);
+  if (hechos.length === total) titulo.textContent = `${hechos.filter((r) => r.ok).length} de ${total} criterios cumplidos`;
+  return el("div", { class: "card" }, titulo, el("div", { class: "acciones" }, boton), progreso, lista);
+}
+
+iniciar();
+</script>
+</body>
+</html>

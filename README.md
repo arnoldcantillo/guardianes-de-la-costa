@@ -24,8 +24,21 @@ El núcleo compartido (distancias, algoritmo de ruta, modelos) está en `guardia
 ## Uso
 
 ```
+py simulador.py     # ventana con las 14 historias y sus 42 criterios
 python main.py
 python -m unittest discover -s tests -v
 ```
 
 Los límites navegables (`LIMITES_NAVEGABLES`) y las lanchas del catálogo (`BASE` en `hu06_embarcacion.py`) son valores de ejemplo.
+
+`simulador.py` abre una ventana (Tkinter, incluido con Python) con una pestaña por historia. Cada criterio de aceptación tiene un botón que lo ejecuta y muestra si cumple. La pestaña «Escenario» permite cambiar la base y los puntos, y «Resumen» ejecuta los 42 criterios de una vez. Los escenarios están en `guardianes/escenarios.py`. Los archivos que genera (PDF, texto) quedan en la carpeta `salidas/`.
+
+## Simulador en la web (GitHub Pages)
+
+`index.html` es una página que ejecuta este mismo código Python dentro del navegador (con Pyodide), sin servidor. Tiene una pestaña por historia, un escenario editable con mapa, y un resumen que ejecuta los 42 criterios. Para verla en local:
+
+```
+py -m http.server 8000
+```
+
+y abrir http://localhost:8000. En GitHub se publica activando Pages (Settings > Pages > rama `main`, carpeta `/ (root)`). La página necesita internet para descargar Pyodide la primera vez.
