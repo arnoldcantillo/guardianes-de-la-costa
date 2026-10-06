@@ -23,8 +23,8 @@ Herramienta para planificar la ruta más corta con la que una lancha recolecta r
 
 | Rol | Integrante |
 |---|---|
-| Product Owner | Por Confirmar |
-| Scrum Master | Por Confirmar |
+| Product Owner | Johan Viviescas |
+| Scrum Master | Jaider Lozano |
 | Developers | Arnold Cantillo, Jaider Lozano, Kemmell Cabana, Sebastián Murcia, Johan Viviescas |
 
 ## Product Backlog
