@@ -67,6 +67,8 @@ input, textarea { width: 100%; font: inherit; padding: 8px 10px; border: 1px sol
 textarea { font-family: ui-monospace, Consolas, monospace; font-size: .9rem; min-height: 130px; }
 .fila { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 12px; margin-bottom: 12px; }
 svg.mapa { width: 100%; height: auto; border-radius: 10px; background: var(--map-water); border: 1px solid var(--line); margin-top: 12px; }
+svg.barras { width: 100%; max-width: 520px; height: auto; margin-top: 10px; }
+svg.barras text { fill: var(--ink); font: 13px system-ui, sans-serif; }
 svg.mapa text { fill: var(--ink); font: 12px system-ui, sans-serif; }
 .barra { height: 10px; border-radius: 999px; background: var(--code-bg); overflow: hidden; margin: 8px 0 14px; }
 .barra > div { height: 100%; background: var(--ok); width: 0; transition: width .2s; }
@@ -207,6 +209,7 @@ function bloqueResultado(r) {
   if (!r) return null;
   const caja = el("div", { class: "res " + (r.ok ? "ok" : "mal"), role: "status" },
     el("div", { class: "badge" }, r.ok ? "✔ CUMPLE" : "✘ NO CUMPLE"), el("pre", {}, r.texto));
+  if (r.grafico) caja.append(graficoBarras(r.grafico));
   if (r.archivos?.length) {
     const d = el("div", { class: "descarga" });
     for (const a of r.archivos) {
@@ -217,6 +220,28 @@ function bloqueResultado(r) {
     caja.append(d);
   }
   return caja;
+}
+function graficoBarras(g) {
+  const ns = "http://www.w3.org/2000/svg";
+  const s = (tag, attrs, txt) => { const e = document.createElementNS(ns, tag); for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v); if (txt != null) e.textContent = txt; return e; };
+  const W = 520, H = 280, base = 220, alto = 170, ancho = 110;
+  const maximo = Math.max(...g.barras.map((b) => b.valor), 0);
+  const escala = maximo || 1;   // con todo en cero, el eje va de 0 a 1
+  const svg = s("svg", { viewBox: `0 0 ${W} ${H}`, class: "barras", role: "img", "aria-label": g.titulo });
+  svg.append(s("text", { x: W / 2, y: 24, "text-anchor": "middle", style: "font-weight:700" }, g.titulo));
+  [0, 0.5, 1].forEach((f) => {
+    const y = base - alto * f;
+    svg.append(s("line", { x1: 50, x2: W - 20, y1: y, y2: y, stroke: "var(--line)", "stroke-width": 1 }));
+    svg.append(s("text", { x: 44, y: y + 4, "text-anchor": "end", style: "fill:var(--mute)" }, String(Math.round(escala * f * 10) / 10)));
+  });
+  g.barras.forEach((b, k) => {
+    const x = 90 + k * (ancho + 90);
+    const h = maximo === 0 ? 0 : (b.valor / maximo) * alto;
+    svg.append(s("rect", { x, y: base - h, width: ancho, height: h, rx: 4, fill: k === 0 ? "var(--brand)" : "var(--mute)" }));
+    svg.append(s("text", { x: x + ancho / 2, y: base - h - 8, "text-anchor": "middle", style: "font-weight:700" }, `${b.valor} ${g.unidad}`));
+    svg.append(s("text", { x: x + ancho / 2, y: base + 22, "text-anchor": "middle" }, b.etiqueta));
+  });
+  return svg;
 }
 function ejecutarCriterio(i, j) {
   resultados[`${i}-${j}`] = JSON.parse(api.ejecutar(i, j, JSON.stringify(escenario)));

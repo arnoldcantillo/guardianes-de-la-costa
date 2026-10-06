@@ -140,7 +140,7 @@ def _hu03_c3(ctx: Contexto) -> Resultado:
     SALIDAS.mkdir(exist_ok=True)
     destino = _panel().generar_pdf(2026, 9, SALIDAS / "panel_septiembre_2026.pdf")
     ok = destino.exists() and destino.read_bytes().startswith(b"%PDF")
-    return ok, f"PDF generado: {destino.resolve()}"
+    return ok, f"PDF generado: {destino.as_posix()}"
 
 
 # ---------------------------------------------------------------- HU-04
@@ -350,7 +350,7 @@ def _hu12_c1(ctx: Contexto) -> Resultado:
     SALIDAS.mkdir(exist_ok=True)
     archivo = exportar_txt(ctx.ruta(), _lancha(), SALIDAS)
     contenido = archivo.read_text(encoding="utf-8")
-    return "Distancia total" in contenido, f"Archivo descargado: {archivo.resolve()}\n\n{contenido}"
+    return "Distancia total" in contenido, f"Archivo descargado: {archivo.as_posix()}\n\n{contenido}"
 
 
 def _hu12_c2(ctx: Contexto) -> Resultado:

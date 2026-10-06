@@ -4,11 +4,28 @@ from __future__ import annotations
 import base64
 import json
 
-from .escenarios import HISTORIAS, SALIDAS, Contexto, ejecutar_criterio
+from .escenarios import HISTORIAS, SALIDAS, Contexto, _panel, ejecutar_criterio
 from .hu08_validacion import validar_entrada
 from .nucleo import Punto
 
 MIME = {".pdf": "application/pdf", ".txt": "text/plain"}
+MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto",
+         "septiembre", "octubre", "noviembre", "diciembre"]
+# (historia, criterio) -> (año, mes) cuyo panel se dibuja como gráfico de barras
+GRAFICOS = {(2, 0): (2026, 9), (2, 1): (2026, 1)}
+
+
+def _grafico(anio: int, mes: int) -> tuple[dict, str]:
+    r = _panel().resumen_mes(anio, mes)
+    periodo = f"{MESES[mes - 1]} {anio}"
+    grafico = {"titulo": f"Combustible en {periodo} (litros)",
+               "barras": [{"etiqueta": "Con optimizador", "valor": r["combustible_real_l"]},
+                          {"etiqueta": "Sin optimizador", "valor": r["combustible_sin_optimizador_l"]}],
+               "unidad": "L"}
+    texto = (f"Mes seleccionado: {periodo}\n"
+             f"Combustible ahorrado: {r['combustible_ahorrado_l']} L\n"
+             f"Plástico retirado: {r['plastico_kg']} kg")
+    return grafico, texto
 
 
 def catalogo() -> str:
@@ -54,4 +71,7 @@ def ejecutar(hu: int, criterio: int, escenario_json: str) -> str:
             if f.is_file():
                 archivos.append({"nombre": f.name, "mime": MIME.get(f.suffix, "application/octet-stream"),
                                  "base64": base64.b64encode(f.read_bytes()).decode("ascii")})
-    return json.dumps({"ok": ok, "texto": texto, "archivos": archivos}, ensure_ascii=False)
+    resultado = {"ok": ok, "texto": texto, "archivos": archivos}
+    if (hu, criterio) in GRAFICOS:
+        resultado["grafico"], resultado["texto"] = _grafico(*GRAFICOS[(hu, criterio)])
+    return json.dumps(resultado, ensure_ascii=False)
