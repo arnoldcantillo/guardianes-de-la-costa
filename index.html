@@ -3,130 +3,231 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Simulador de historias · Guardianes de la costera</title>
+<title>Simulador de historias de usuario · Guardianes de la costera</title>
+<meta name="description" content="Simulador de las 14 historias de usuario y sus 42 criterios de aceptación del optimizador de enrutamiento costero.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Source+Serif+4:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg: #f3f6f8; --panel: #ffffff; --ink: #14232e; --mute: #5b6b78; --line: #d8e0e6;
-  --brand: #0b6e8f; --brand-ink: #ffffff; --ok: #0a7d2c; --ok-bg: #e4f5ea;
-  --mal: #b00020; --mal-bg: #fbe6ea; --warn: #9a6700; --warn-bg: #fff4d6;
-  --code-bg: #f0f4f7; --map-water: #e8f3f8; --map-line: #0b6e8f;
+  --papel: #edf2f2; --hoja: #fafcfc; --doc: #ffffff;
+  --tinta: #0e2b3d; --tenue: #4d6a79; --linea: #cddadd;
+  --mar: #17637d; --sobre-mar: #ffffff; --senal: #f0b429; --agua: #dcebf0;
+  --ok: #17703f; --ok-bg: #e2f1e8; --mal: #a8231b; --mal-bg: #fae6e3;
+  --amar: #7d5200; --amar-bg: #fbefcc; --info: #24566f; --info-bg: #e1edf2;
+  --sans: "Public Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --serif: "Source Serif 4", Georgia, "Times New Roman", serif;
 }
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg: #0e1a22; --panel: #15252f; --ink: #e6eef3; --mute: #9db0bc; --line: #26404f;
-    --brand: #3fb6d9; --brand-ink: #04202b; --ok: #5fd68a; --ok-bg: #12301f;
-    --mal: #ff7b8f; --mal-bg: #3a1620; --warn: #f0c24b; --warn-bg: #34290d;
-    --code-bg: #0f1d26; --map-water: #112733; --map-line: #3fb6d9;
+  :root:not([data-tema="claro"]) {
+    --papel: #0b1a24; --hoja: #11262f; --doc: #0d212b;
+    --tinta: #e3edf1; --tenue: #93aebb; --linea: #26434f;
+    --mar: #5cb8d6; --sobre-mar: #06222c; --agua: #12303d;
+    --ok: #62d08e; --ok-bg: #123324; --mal: #ff9187; --mal-bg: #3b1a19;
+    --amar: #f0c35a; --amar-bg: #3a2d0d; --info: #8ec9e0; --info-bg: #14313f;
   }
 }
-:root[data-theme="dark"] {
-  --bg: #0e1a22; --panel: #15252f; --ink: #e6eef3; --mute: #9db0bc; --line: #26404f;
-  --brand: #3fb6d9; --brand-ink: #04202b; --ok: #5fd68a; --ok-bg: #12301f;
-  --mal: #ff7b8f; --mal-bg: #3a1620; --warn: #f0c24b; --warn-bg: #34290d;
-  --code-bg: #0f1d26; --map-water: #112733; --map-line: #3fb6d9;
-}
 * { box-sizing: border-box; }
-body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
-header { background: var(--panel); border-bottom: 1px solid var(--line); padding: 14px 20px; display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
-header h1 { font-size: 1.15rem; margin: 0; }
-header p { margin: 0; color: var(--mute); font-size: .9rem; }
-header .grow { flex: 1 1 260px; }
-.chip { padding: 6px 12px; border-radius: 999px; font-weight: 600; font-size: .9rem; background: var(--code-bg); border: 1px solid var(--line); }
-.chip.ok { background: var(--ok-bg); color: var(--ok); border-color: transparent; }
-.chip.mal { background: var(--mal-bg); color: var(--mal); border-color: transparent; }
-.layout { display: grid; grid-template-columns: 270px 1fr; gap: 20px; padding: 20px; max-width: 1280px; margin: 0 auto; }
-nav { display: flex; flex-direction: column; gap: 4px; position: sticky; top: 12px; align-self: start; max-height: calc(100vh - 24px); overflow: auto; }
-nav button { all: unset; cursor: pointer; display: flex; gap: 10px; align-items: center; padding: 8px 12px; border-radius: 8px; font-size: .92rem; border: 1px solid transparent; }
-nav button:hover { background: var(--panel); }
-nav button:focus-visible, .btn:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
-nav button[aria-current="page"] { background: var(--panel); border-color: var(--line); font-weight: 600; }
-nav .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--line); flex: none; }
-nav .dot.ok { background: var(--ok); } nav .dot.mal { background: var(--mal); } nav .dot.warn { background: var(--warn); }
-nav .id { font-variant-numeric: tabular-nums; font-weight: 600; min-width: 62px; white-space: nowrap; }
-nav .t { color: var(--mute); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--papel); color: var(--tinta); font: 16px/1.55 var(--sans); -webkit-font-smoothing: antialiased; }
+h1, h2, h3, p { margin: 0; }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--mar); outline-offset: 2px; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* ---------- cabecera */
+.cabecera { display: flex; flex-wrap: wrap; gap: 20px 40px; align-items: center; justify-content: space-between;
+  padding: 18px clamp(16px, 3vw, 40px); border-bottom: 1px solid var(--linea); background: var(--hoja); }
+.marca h1 { font: 600 1.55rem/1.15 var(--serif); letter-spacing: -.01em; }
+.marca p { margin-top: 3px; color: var(--tenue); font-size: .92rem; }
+.avance { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+.cifra { display: flex; align-items: baseline; gap: 6px; }
+.cifra .n { font: 700 2.3rem/1 var(--serif); font-variant-numeric: tabular-nums; }
+.cifra .de { font-size: .95rem; color: var(--tenue); }
+.tira { display: flex; gap: 7px; flex-wrap: wrap; }
+.grupo { display: flex; gap: 2px; padding: 0; }
+.marca-c { all: unset; cursor: pointer; width: 9px; height: 24px; background: var(--linea); border-radius: 1px; transition: background-color .15s; }
+.marca-c.ok { background: var(--ok); } .marca-c.mal { background: var(--mal); }
+.marca-c:hover { outline: 2px solid var(--tinta); outline-offset: 1px; }
+.marca-c:focus-visible { outline: 3px solid var(--mar); outline-offset: 2px; }
+
+/* ---------- estructura */
+.cuerpo { display: grid; grid-template-columns: 290px minmax(0, 1fr); gap: clamp(20px, 3vw, 44px);
+  max-width: 1380px; margin: 0 auto; padding: 28px clamp(16px, 3vw, 40px) 64px; }
+.indice { min-width: 0; position: sticky; top: 16px; align-self: start; max-height: calc(100vh - 32px); overflow: auto; }
+.indice ul { list-style: none; margin: 0; padding: 0; }
+.indice li + li { margin-top: 1px; }
+.enlace { all: unset; box-sizing: border-box; width: 100%; cursor: pointer; display: grid; grid-template-columns: 22px 1fr; gap: 10px;
+  align-items: start; padding: 6px 10px 6px 12px; border-left: 3px solid transparent; border-radius: 0 4px 4px 0; }
+.enlace:hover { background: color-mix(in srgb, var(--hoja) 70%, transparent); }
+.enlace[aria-current="page"] { background: var(--hoja); border-left-color: var(--senal); }
+.enlace .ic { margin-top: 3px; }
+.enlace .id { font-weight: 700; font-size: .9rem; font-variant-numeric: tabular-nums; }
+.enlace .t { display: block; font-size: .88rem; color: var(--tenue); line-height: 1.35; }
+.enlace .grupo-t { display: block; }
+.separador { margin: 12px 0 6px 12px; font-size: .8rem; color: var(--tenue); font-weight: 600; }
+
 main { min-width: 0; }
-.card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 18px; margin-bottom: 14px; }
-h2 { margin: 0 0 4px; font-size: 1.35rem; }
-.historia { color: var(--mute); margin: 6px 0 0; }
-.btn { cursor: pointer; border: 1px solid var(--brand); background: var(--brand); color: var(--brand-ink); padding: 8px 16px; border-radius: 8px; font: inherit; font-weight: 600; }
-.btn.sec { background: transparent; color: var(--brand); }
-.btn:disabled { opacity: .5; cursor: default; }
-.crit { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: start; }
-.crit .n { font-size: .8rem; font-weight: 700; color: var(--brand); text-transform: uppercase; letter-spacing: .04em; }
-.crit p { margin: 2px 0 0; }
-.res { margin-top: 12px; border-radius: 8px; padding: 12px; border: 1px solid transparent; }
-.res.ok { background: var(--ok-bg); } .res.mal { background: var(--mal-bg); }
-.badge { font-weight: 700; font-size: .85rem; }
-.res.ok .badge { color: var(--ok); } .res.mal .badge { color: var(--mal); }
-pre { margin: 6px 0 0; white-space: pre-wrap; word-break: break-word; font: .9rem/1.5 ui-monospace, Consolas, monospace; color: var(--ink); }
-.acciones { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
-.descarga { margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap; }
-.descarga a { color: var(--brand); font-weight: 600; }
-label { display: block; font-size: .85rem; color: var(--mute); margin-bottom: 4px; }
-input, textarea { width: 100%; font: inherit; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--ink); }
-textarea { font-family: ui-monospace, Consolas, monospace; font-size: .9rem; min-height: 130px; }
-.fila { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 12px; margin-bottom: 12px; }
-svg.mapa { width: 100%; height: auto; border-radius: 10px; background: var(--map-water); border: 1px solid var(--line); margin-top: 12px; }
-svg.barras { width: 100%; max-width: 520px; height: auto; margin-top: 10px; }
-svg.barras text { fill: var(--ink); font: 13px system-ui, sans-serif; }
-svg.mapa text { fill: var(--ink); font: 12px system-ui, sans-serif; }
-.barra { height: 10px; border-radius: 999px; background: var(--code-bg); overflow: hidden; margin: 8px 0 14px; }
-.barra > div { height: 100%; background: var(--ok); width: 0; transition: width .2s; }
-.lista { list-style: none; margin: 0; padding: 0; }
-.lista li { display: flex; gap: 10px; padding: 6px 0; border-bottom: 1px solid var(--line); }
-.lista li:last-child { border: 0; }
-.lista .m { font-weight: 700; flex: none; width: 20px; }
-.lista .ok .m { color: var(--ok); } .lista .mal .m { color: var(--mal); }
-.lista .hu { font-weight: 600; flex: none; min-width: 74px; }
-#carga { position: fixed; inset: 0; background: var(--bg); display: grid; place-items: center; z-index: 10; text-align: center; padding: 20px; }
-#carga .spin { width: 38px; height: 38px; border: 4px solid var(--line); border-top-color: var(--brand); border-radius: 50%; animation: g 1s linear infinite; margin: 0 auto 14px; }
-@keyframes g { to { transform: rotate(360deg); } }
-@media (prefers-reduced-motion: reduce) { #carga .spin { animation: none; } .barra > div { transition: none; } }
-@media (max-width: 860px) {
-  .layout { grid-template-columns: 1fr; padding: 16px; }
-  nav { position: static; flex-direction: row; overflow-x: auto; max-height: none; padding-bottom: 4px; }
-  nav button { flex: none; } nav .t { display: none; }
-  .fila { grid-template-columns: 1fr; }
-  .crit { grid-template-columns: 1fr; }
+.cab-vista h2 { font: 600 clamp(1.7rem, 3vw, 2.3rem)/1.15 var(--serif); letter-spacing: -.01em; }
+.cab-vista .cod { display: block; margin-bottom: 4px; font: 600 .95rem var(--sans); color: var(--mar); font-variant-numeric: tabular-nums; }
+.historia { margin: 16px 0 0; max-width: 64ch; padding-left: 18px; border-left: 3px solid var(--linea);
+  font: 400 1.18rem/1.6 var(--serif); }
+.acciones { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+.btn { cursor: pointer; border: 1px solid var(--mar); background: var(--mar); color: var(--sobre-mar); min-height: 40px;
+  padding: 0 18px; border-radius: 6px; font-weight: 600; }
+.btn:hover { filter: brightness(1.08); }
+.btn.sec { background: transparent; color: var(--mar); }
+.btn.sec:hover { background: color-mix(in srgb, var(--mar) 10%, transparent); filter: none; }
+.btn.chico { min-height: 34px; padding: 0 14px; font-size: .92rem; }
+.btn:disabled { opacity: .55; cursor: default; }
+
+/* ---------- criterios */
+.criterios { list-style: none; margin: 28px 0 0; padding: 0; border-top: 1px solid var(--linea); }
+.criterio { display: grid; grid-template-columns: 28px minmax(0, 1fr) auto; gap: 6px 14px; padding: 18px 0; border-bottom: 1px solid var(--linea); }
+.criterio .mk { margin-top: 2px; }
+.criterio .enunciado { max-width: 66ch; }
+.criterio .num { display: block; font-size: .85rem; font-weight: 600; color: var(--tenue); }
+.criterio .contenido { grid-column: 2 / -1; }
+
+.resultado { margin-top: 14px; padding: 14px 16px; background: var(--hoja); border: 1px solid var(--linea);
+  border-left: 3px solid var(--tono); border-radius: 0 6px 6px 0; }
+.resultado.ok { --tono: var(--ok); } .resultado.mal { --tono: var(--mal); }
+.veredicto { display: flex; align-items: center; gap: 8px; font-weight: 700; color: var(--tono); margin-bottom: 12px; }
+.bloques > * + * { margin-top: 14px; }
+
+/* ---------- bloques de contenido */
+.parrafo { max-width: 66ch; }
+.pares { margin: 0; border-top: 1px solid var(--linea); }
+.pares div { display: grid; grid-template-columns: minmax(160px, 36%) 1fr; gap: 14px; padding: 7px 0; border-bottom: 1px solid var(--linea); }
+.pares dt { color: var(--tenue); }
+.pares dd { margin: 0; font-weight: 600; font-variant-numeric: tabular-nums; }
+.tabla-wrap { overflow-x: auto; border: 1px solid var(--linea); border-radius: 6px; background: var(--doc); }
+table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+th { text-align: left; font-size: .86rem; font-weight: 600; color: var(--tenue); padding: 9px 14px; background: color-mix(in srgb, var(--linea) 35%, var(--doc)); border-bottom: 1px solid var(--linea); white-space: nowrap; }
+td { padding: 9px 14px; border-top: 1px solid var(--linea); vertical-align: top; }
+tbody tr:first-child td { border-top: 0; }
+.etiqueta { display: inline-block; padding: 1px 10px; border-radius: 999px; font-size: .84rem; font-weight: 600; white-space: nowrap; }
+.t-rojo { background: var(--mal-bg); color: var(--mal); } .t-amarillo { background: var(--amar-bg); color: var(--amar); }
+.t-verde { background: var(--ok-bg); color: var(--ok); } .t-info { background: var(--info-bg); color: var(--info); }
+.lista { margin: 0; padding-left: 22px; } .lista li + li { margin-top: 3px; }
+.aviso { display: flex; gap: 12px; align-items: flex-start; padding: 12px 14px; border-radius: 6px; }
+.aviso svg { flex: none; margin-top: 2px; }
+.aviso strong { display: block; }
+.aviso p { margin-top: 2px; }
+.aviso.rojo { background: var(--mal-bg); } .aviso.rojo strong, .aviso.rojo svg { color: var(--mal); }
+.aviso.amarillo { background: var(--amar-bg); } .aviso.amarillo strong, .aviso.amarillo svg { color: var(--amar); }
+.aviso.verde { background: var(--ok-bg); } .aviso.verde strong, .aviso.verde svg { color: var(--ok); }
+.aviso.info { background: var(--info-bg); } .aviso.info strong, .aviso.info svg { color: var(--info); }
+.porcentajes { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; max-width: 520px; }
+.porcentajes li { display: grid; grid-template-columns: 150px 1fr 56px; gap: 12px; align-items: center; }
+.pista { height: 12px; border-radius: 6px; background: color-mix(in srgb, var(--linea) 60%, transparent); overflow: hidden; }
+.relleno { height: 100%; background: var(--mar); border-radius: 6px; }
+.porcentajes .v { text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
+svg.barras { width: 100%; max-width: 520px; height: auto; display: block; }
+svg.barras text { fill: var(--tinta); font: 500 13px var(--sans); }
+.papel { margin: 0; max-width: 560px; padding: 18px 22px 20px; background: var(--doc); border: 1px solid var(--linea); border-radius: 3px;
+  box-shadow: 3px 3px 0 color-mix(in srgb, var(--linea) 70%, transparent); }
+.papel figcaption { font-size: .82rem; color: var(--tenue); margin-bottom: 12px; }
+.papel p { font-size: .96rem; line-height: 1.6; font-variant-numeric: tabular-nums; }
+.papel p.titulo { font: 700 1.1rem var(--serif); margin-bottom: 6px; }
+.papel .hueco { height: 10px; }
+.descarga { display: inline-flex; align-items: center; gap: 8px; margin-top: 14px; font-weight: 600; color: var(--mar); }
+
+/* ---------- escenario */
+.dos-col { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 32px; margin-top: 24px; align-items: start; }
+.campo label { display: block; font-size: .88rem; color: var(--tenue); margin-bottom: 4px; }
+input[type="text"] { width: 100%; min-height: 40px; padding: 0 10px; font: inherit; color: var(--tinta); background: var(--doc);
+  border: 1px solid var(--linea); border-radius: 6px; }
+input[type="text"]:hover { border-color: var(--tenue); }
+.fila-base { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 12px; margin-bottom: 22px; }
+.sub { font: 600 1.15rem var(--serif); margin-bottom: 10px; }
+table.puntos { table-layout: fixed; }
+table.puntos th:nth-child(1) { width: 42%; } table.puntos th:nth-child(4) { width: 46px; }
+table.puntos td { padding: 6px 8px; border: 0; }
+table.puntos th { padding: 8px; }
+table.puntos input { min-height: 36px; }
+.quitar { all: unset; cursor: pointer; width: 34px; height: 34px; display: grid; place-items: center; border-radius: 6px; color: var(--tenue); }
+.quitar:hover { background: var(--mal-bg); color: var(--mal); }
+.quitar:focus-visible { outline: 3px solid var(--mar); }
+.mapa-col { position: sticky; top: 16px; }
+svg.mapa { width: 100%; height: auto; display: block; border: 1px solid var(--linea); border-radius: 6px; background: var(--agua); }
+svg.mapa text { fill: var(--tinta); font: 600 14px var(--sans); paint-order: stroke; stroke: var(--agua); stroke-width: 4px; stroke-linejoin: round; }
+svg.mapa .rejilla { stroke: color-mix(in srgb, var(--tenue) 28%, transparent); stroke-width: 1; }
+.pie-mapa { margin-top: 8px; font-size: .86rem; color: var(--tenue); }
+
+/* ---------- resumen */
+.gran { display: flex; align-items: baseline; gap: 10px; margin: 22px 0 4px; }
+.gran .n { font: 700 3.2rem/1 var(--serif); font-variant-numeric: tabular-nums; }
+.gran .l { color: var(--tenue); }
+.matriz td, .matriz th { text-align: center; } .matriz td:first-child, .matriz th:first-child { text-align: left; }
+.matriz .ir { all: unset; cursor: pointer; font-weight: 600; } .matriz .ir:hover { text-decoration: underline; }
+.matriz .ir:focus-visible { outline: 3px solid var(--mar); }
+.matriz .cod { color: var(--tenue); font-weight: 500; margin-right: 8px; }
+.matriz .mk { display: inline-block; vertical-align: middle; }
+
+/* ---------- carga */
+#carga { position: fixed; inset: 0; z-index: 10; display: grid; place-items: center; padding: 24px; text-align: center; background: var(--papel); }
+#carga .giro { width: 34px; height: 34px; margin: 0 auto 16px; border: 3px solid var(--linea); border-top-color: var(--mar); border-radius: 50%; animation: giro 1s linear infinite; }
+#carga strong { font: 600 1.25rem var(--serif); }
+#carga p { margin: 8px auto 0; max-width: 40ch; color: var(--tenue); }
+@keyframes giro { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { #carga .giro { animation: none; } .marca-c { transition: none; } html { scroll-behavior: auto; } }
+
+@media (max-width: 980px) {
+  .cuerpo { grid-template-columns: minmax(0, 1fr); padding-top: 18px; }
+  .indice { position: static; max-height: none; overflow: visible; }
+  .indice ul { display: flex; gap: 4px; overflow-x: auto; padding-bottom: 6px; }
+  .indice li + li { margin-top: 0; }
+  .enlace { width: auto; grid-template-columns: 22px auto; border-left: 0; border-bottom: 3px solid transparent; border-radius: 4px 4px 0 0; white-space: nowrap; }
+  .enlace[aria-current="page"] { border-bottom-color: var(--senal); }
+  .enlace .t, .separador { display: none; }
+  .dos-col { grid-template-columns: 1fr; } .mapa-col { position: static; }
+}
+@media (max-width: 600px) {
+  .fila-base { grid-template-columns: 1fr; }
+  .criterio { grid-template-columns: 28px minmax(0, 1fr); } .criterio .btn { grid-column: 2; justify-self: start; }
+  .pares div { grid-template-columns: 1fr; gap: 0; }
+  .porcentajes li { grid-template-columns: 1fr 56px; } .porcentajes .pista { grid-column: 1 / -1; grid-row: 2; }
 }
 </style>
 </head>
 <body>
 <div id="carga" role="status">
-  <div><div class="spin"></div><strong id="carga-t">Cargando Python en el navegador…</strong>
-  <p id="carga-d" style="color:var(--mute);max-width:420px">La primera vez tarda unos segundos. Es el mismo código Python del repositorio.</p></div>
+  <div><div class="giro"></div><strong id="carga-t">Preparando el simulador</strong>
+  <p id="carga-d">Se está cargando Python en el navegador. La primera vez tarda unos segundos.</p></div>
 </div>
-<header>
-  <div class="grow">
+<header class="cabecera">
+  <div class="marca">
     <h1>Optimizador de enrutamiento costero</h1>
-    <p>Simulador de las 14 historias de usuario · Guardianes de la costera</p>
+    <p>Guardianes de la costera. Simulador de historias de usuario.</p>
   </div>
-  <span class="chip" id="total">0 de 42 criterios cumplidos</span>
+  <div class="avance" id="avance" aria-live="polite"></div>
 </header>
-<div class="layout">
-  <nav id="nav" aria-label="Historias de usuario"></nav>
-  <main id="main"></main>
+<div class="cuerpo">
+  <nav class="indice" id="indice" aria-label="Historias de usuario"></nav>
+  <main id="contenido"></main>
 </div>
 
 <script>
 const PYODIDE_URL = "https://cdn.jsdelivr.net/pyodide/v314.0.7/full/pyodide.js";
-const MODULOS = ["__init__", "nucleo", "hu01_asignar_cuadrilla", "hu02_coordenadas", "hu03_panel", "hu04_ahorro",
+const MODULOS = ["__init__", "nucleo", "bloques", "hu01_asignar_cuadrilla", "hu02_coordenadas", "hu03_panel", "hu04_ahorro",
   "hu05_omitir_punto", "hu06_embarcacion", "hu07_registro_kg", "hu08_validacion", "hu09_alerta_combustible",
   "hu10_tipo_residuo", "hu11_historial", "hu12_exportar", "hu13_auditoria", "hu14_muelles", "escenarios", "web_api"];
 const ESCENARIO_DEFECTO = {
-  base: { nombre: "Muelle Centro", lat: 10.96, lon: -74.80 },
+  base: { nombre: "Muelle Centro", lat: "10.96", lon: "-74.80" },
   puntos: [
-    { nombre: "Dársena 1", lat: 10.99, lon: -74.85 }, { nombre: "Desembocadura", lat: 10.93, lon: -74.78 },
-    { nombre: "Canal Norte", lat: 11.02, lon: -74.79 }, { nombre: "Muelle viejo", lat: 10.95, lon: -74.88 }]
+    { nombre: "Dársena 1", lat: "10.99", lon: "-74.85" }, { nombre: "Desembocadura", lat: "10.93", lon: "-74.78" },
+    { nombre: "Canal Norte", lat: "11.02", lon: "-74.79" }, { nombre: "Muelle viejo", lat: "10.95", lon: "-74.88" }]
 };
+const copiar = (o) => JSON.parse(JSON.stringify(o));
 
-let api, catalogo = [];
-let escenario = JSON.parse(JSON.stringify(ESCENARIO_DEFECTO));
-let borrador = null;            // texto del formulario del escenario
-let resultadoEscenario = null;  // {ok, texto, mapa}
-const resultados = {};          // "i-j" -> {ok, texto, archivos}
+let api, catalogo = [], total = 0;
+let escenario = copiar(ESCENARIO_DEFECTO);   // el escenario aplicado
+let borrador = copiar(ESCENARIO_DEFECTO);    // lo que se está editando
+let resultadoEscenario = null, ultimoMapa = null;
+const resultados = {};                       // "i-j" -> {ok, bloques, archivos}
 let vista = "escenario";
-let resumenEstado = { corriendo: false };
+let corriendoResumen = false;
 
 const $ = (id) => document.getElementById(id);
 function el(tag, props = {}, ...hijos) {
@@ -141,17 +242,288 @@ function el(tag, props = {}, ...hijos) {
 }
 const pausa = () => new Promise((r) => setTimeout(r, 0));
 
-/* ------------------------------------------------------------ arranque */
+/* ------------------------------------------------------------- iconos */
+const ICONOS = {
+  ok: '<svg width="{s}" height="{s}" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="currentColor"/><path d="M7 12.5l3.2 3.2L17 8.8" fill="none" stroke="var(--hoja)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  mal: '<svg width="{s}" height="{s}" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="currentColor"/><path d="M8 8l8 8M16 8l-8 8" fill="none" stroke="var(--hoja)" stroke-width="2.4" stroke-linecap="round"/></svg>',
+  sin: '<svg width="{s}" height="{s}" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.5" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
+  parcial: '<svg width="{s}" height="{s}" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 2.5a9.5 9.5 0 0 1 0 19z" fill="currentColor"/></svg>',
+  rojo: '<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l10 18H2z" fill="currentColor"/><path d="M12 9.5v5M12 17.4v.2" stroke="var(--hoja)" stroke-width="2.2" stroke-linecap="round"/></svg>',
+  amarillo: '<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l10 18H2z" fill="currentColor"/><path d="M12 9.5v5M12 17.4v.2" stroke="var(--hoja)" stroke-width="2.2" stroke-linecap="round"/></svg>',
+  verde: '<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="currentColor"/><path d="M7 12.5l3.2 3.2L17 8.8" fill="none" stroke="var(--hoja)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  info: '<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="currentColor"/><path d="M12 11v6M12 7.4v.2" stroke="var(--hoja)" stroke-width="2.4" stroke-linecap="round"/></svg>',
+  bajar: '<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0l-4.5-4.5M12 15l4.5-4.5M4 20h16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  quitar: '<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>'
+};
+function icono(nombre, tam = 20, color) {
+  const s = el("span", { class: "ic", style: `display:inline-flex;line-height:0;${color ? "color:" + color : ""}` });
+  s.innerHTML = ICONOS[nombre].replaceAll("{s}", tam);
+  return s;
+}
+const COLOR_ESTADO = { ok: "var(--ok)", mal: "var(--mal)", sin: "var(--tenue)", parcial: "var(--amar)" };
+const marcador = (estado, tam = 20) => icono(estado || "sin", tam, COLOR_ESTADO[estado || "sin"]);
+
+/* ------------------------------------------------- bloques de contenido */
+function pintarBloques(bloques) {
+  const cont = el("div", { class: "bloques" });
+  for (const b of bloques) cont.append(pintarBloque(b));
+  return cont;
+}
+function pintarBloque(b) {
+  switch (b.t) {
+    case "p": return el("p", { class: "parrafo" }, b.texto);
+    case "pares": return el("dl", { class: "pares" }, b.filas.map(([k, v]) => el("div", {}, el("dt", {}, k), el("dd", {}, v))));
+    case "tabla": return el("div", { class: "tabla-wrap" }, el("table", {},
+      el("thead", {}, el("tr", {}, b.cabeceras.map((h) => el("th", { scope: "col" }, h)))),
+      el("tbody", {}, b.filas.map((f) => el("tr", {}, f.map((c) =>
+        el("td", {}, typeof c === "object" ? el("span", { class: "etiqueta t-" + c.tono }, c.texto) : c)))))));
+    case "lista": return el(b.ordenada ? "ol" : "ul", { class: "lista" }, b.items.map((x) => el("li", {}, x)));
+    case "aviso": return el("div", { class: "aviso " + b.tono, role: b.tono === "rojo" ? "alert" : null },
+      icono(b.tono), el("div", {}, el("strong", {}, b.titulo), b.detalle ? el("p", {}, b.detalle) : null));
+    case "porcentajes": return el("ul", { class: "porcentajes" }, b.items.map(([e, p]) => el("li", {},
+      el("span", {}, e), el("div", { class: "pista" }, el("div", { class: "relleno", style: `width:${Math.min(100, p)}%` })),
+      el("span", { class: "v" }, `${p}%`))));
+    case "barras": return graficoBarras(b);
+    case "documento": return el("figure", { class: "papel" }, el("figcaption", {}, b.titulo),
+      b.lineas.map((l, k) => l.trim() === "" ? el("div", { class: "hueco" }) : el("p", { class: k === 0 ? "titulo" : "" }, l)));
+    default: return el("p", {}, JSON.stringify(b));
+  }
+}
+function graficoBarras(g) {
+  const ns = "http://www.w3.org/2000/svg";
+  const s = (tag, attrs, txt) => { const e = document.createElementNS(ns, tag); for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v); if (txt != null) e.textContent = txt; return e; };
+  const W = 520, H = 290, base = 228, alto = 170, ancho = 118;
+  const maximo = Math.max(...g.barras.map((x) => x.valor), 0);
+  const escala = maximo || 1;
+  const svg = s("svg", { viewBox: `0 0 ${W} ${H}`, class: "barras", role: "img", "aria-label": `${g.titulo}: ` + g.barras.map((x) => `${x.etiqueta} ${x.valor} ${g.unidad}`).join(", ") });
+  svg.append(s("text", { x: 0, y: 18, style: "font-weight:700;font-size:15px" }, g.titulo));
+  [0, 0.5, 1].forEach((f) => {
+    const y = base - alto * f;
+    svg.append(s("line", { x1: 56, x2: W - 10, y1: y, y2: y, stroke: "var(--linea)", "stroke-width": 1 }));
+    svg.append(s("text", { x: 48, y: y + 4, "text-anchor": "end", style: "fill:var(--tenue);font-size:12px" }, String(Math.round(escala * f * 10) / 10)));
+  });
+  g.barras.forEach((x, k) => {
+    const px = 100 + k * (ancho + 96), h = maximo === 0 ? 0 : (x.valor / maximo) * alto;
+    svg.append(s("rect", { x: px, y: base - h, width: ancho, height: h, rx: 2, fill: k === 0 ? "var(--mar)" : "var(--tenue)" }));
+    svg.append(s("text", { x: px + ancho / 2, y: base - h - 8, "text-anchor": "middle", style: "font-weight:700" }, `${x.valor} ${g.unidad}`));
+    svg.append(s("text", { x: px + ancho / 2, y: base + 24, "text-anchor": "middle" }, x.etiqueta));
+  });
+  return svg;
+}
+function enlaceDescarga(a) {
+  const bytes = Uint8Array.from(atob(a.base64), (c) => c.charCodeAt(0));
+  const url = URL.createObjectURL(new Blob([bytes], { type: a.mime }));
+  return el("a", { class: "descarga", href: url, download: a.nombre }, icono("bajar", 18), `Descargar ${a.nombre}`);
+}
+function bloqueResultado(r) {
+  if (!r) return null;
+  return el("div", { class: "resultado " + (r.ok ? "ok" : "mal") },
+    el("div", { class: "veredicto" }, icono(r.ok ? "ok" : "mal", 20), r.ok ? "Cumple" : "No cumple"),
+    pintarBloques(r.bloques), (r.archivos || []).map(enlaceDescarga));
+}
+
+/* ------------------------------------------------ progreso y navegación */
+function estadoCriterio(i, j) { const r = resultados[`${i}-${j}`]; return r ? (r.ok ? "ok" : "mal") : "sin"; }
+function estadoHistoria(i) {
+  const e = catalogo[i].criterios.map((_, j) => estadoCriterio(i, j));
+  if (e.includes("mal")) return "mal";
+  if (e.every((x) => x === "ok")) return "ok";
+  return e.some((x) => x === "ok") ? "parcial" : "sin";
+}
+function estadoGlobal() {
+  const e = catalogo.map((_, i) => estadoHistoria(i));
+  if (e.includes("mal")) return "mal";
+  if (e.every((x) => x === "ok")) return "ok";
+  return e.every((x) => x === "sin") ? "sin" : "parcial";
+}
+function dibujarAvance() {
+  const hechos = Object.values(resultados), cumplen = hechos.filter((r) => r.ok).length;
+  const tira = el("div", { class: "tira", role: "group", "aria-label": "Estado de los criterios, por historia" });
+  catalogo.forEach((h, i) => tira.append(el("div", { class: "grupo" }, h.criterios.map((d, j) => {
+    const est = estadoCriterio(i, j);
+    const txt = `${h.id}, criterio ${j + 1}: ` + (est === "ok" ? "cumple" : est === "mal" ? "no cumple" : "sin probar");
+    return el("button", { class: "marca-c " + (est === "sin" ? "" : est), title: txt, "aria-label": txt, onclick: () => ir(String(i)) });
+  }))));
+  $("avance").replaceChildren(
+    el("div", { class: "cifra" }, el("span", { class: "n" }, String(cumplen)), el("span", { class: "de" }, `de ${total} criterios cumplidos`)), tira);
+}
+function dibujarIndice() {
+  const item = (clave, id, titulo, estado) => el("li", {}, el("button", { class: "enlace", "aria-current": vista === clave ? "page" : null, onclick: () => ir(clave) },
+    marcador(estado, 18), el("span", { class: "grupo-t" }, el("span", { class: "id" }, id), el("span", { class: "t" }, titulo))));
+  $("indice").replaceChildren(el("ul", {},
+    item("escenario", "Datos", "Base y puntos de la jornada", resultadoEscenario?.ok ? "ok" : "mal"),
+    el("li", { class: "separador" }, "Historias de usuario"),
+    catalogo.map((h, i) => item(String(i), h.id, h.titulo, estadoHistoria(i))),
+    el("li", { class: "separador" }, "Visión general"),
+    item("resumen", "Resumen", "Los 42 criterios", estadoGlobal())));
+}
+function actualizarGlobal() { dibujarAvance(); dibujarIndice(); }
+function ir(v) {
+  vista = v;
+  actualizarGlobal();
+  const main = $("contenido");
+  main.replaceChildren(v === "escenario" ? vistaEscenario() : v === "resumen" ? vistaResumen() : vistaHistoria(Number(v)));
+  window.scrollTo({ top: 0 });
+}
+
+/* ------------------------------------------------------------- historias */
+function ejecutarCriterio(i, j) { resultados[`${i}-${j}`] = JSON.parse(api.ejecutar(i, j, JSON.stringify(escenario))); }
+function filaCriterio(i, j) {
+  const desc = catalogo[i].criterios[j];
+  return el("li", { class: "criterio", id: `fila-${i}-${j}` },
+    marcador(estadoCriterio(i, j), 24),
+    el("div", { class: "enunciado" }, el("span", { class: "num" }, `Criterio ${j + 1}`), desc),
+    el("button", { class: "btn", onclick: () => { ejecutarCriterio(i, j); refrescar(i, j); actualizarGlobal(); } }, "Probar"),
+    el("div", { class: "contenido" }, bloqueResultado(resultados[`${i}-${j}`])));
+}
+function refrescar(i, j) { const f = document.getElementById(`fila-${i}-${j}`); if (f) f.replaceWith(filaCriterio(i, j)); }
+function vistaHistoria(i) {
+  const h = catalogo[i];
+  return el("div", {},
+    el("div", { class: "cab-vista" }, el("span", { class: "cod" }, h.id), el("h2", {}, h.titulo)),
+    el("p", { class: "historia" }, h.historia),
+    el("div", { class: "acciones" },
+      el("button", { class: "btn", onclick: () => { h.criterios.forEach((_, j) => { ejecutarCriterio(i, j); refrescar(i, j); }); actualizarGlobal(); } }, "Probar los 3 criterios"),
+      el("button", { class: "btn sec", onclick: () => { h.criterios.forEach((_, j) => { delete resultados[`${i}-${j}`]; refrescar(i, j); }); actualizarGlobal(); } }, "Borrar resultados")),
+    el("ol", { class: "criterios" }, h.criterios.map((_, j) => filaCriterio(i, j))));
+}
+
+/* -------------------------------------------------------------- escenario */
+function mapaSVG(m) {
+  const todos = [m.base, ...m.ruta];
+  const lats = todos.map((p) => p.lat), lons = todos.map((p) => p.lon);
+  const [la0, la1, lo0, lo1] = [Math.min(...lats), Math.max(...lats), Math.min(...lons), Math.max(...lons)];
+  const W = 520, H = 440, pad = 62;
+  const x = (lo) => pad + (lo1 === lo0 ? (W - 2 * pad) / 2 : ((lo - lo0) / (lo1 - lo0)) * (W - 2 * pad));
+  const y = (la) => H - pad - (la1 === la0 ? (H - 2 * pad) / 2 : ((la - la0) / (la1 - la0)) * (H - 2 * pad));
+  const ns = "http://www.w3.org/2000/svg";
+  const s = (tag, attrs, txt) => { const e = document.createElementNS(ns, tag); for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v); if (txt != null) e.textContent = txt; return e; };
+  const svg = s("svg", { viewBox: `0 0 ${W} ${H}`, class: "mapa", role: "img", "aria-label": "Mapa esquemático de la ruta óptima" });
+  for (let k = 0; k <= 4; k++) {
+    svg.append(s("line", { x1: pad + (k * (W - 2 * pad)) / 4, x2: pad + (k * (W - 2 * pad)) / 4, y1: 18, y2: H - 18, class: "rejilla" }));
+    svg.append(s("line", { x1: 18, x2: W - 18, y1: pad + (k * (H - 2 * pad)) / 4, y2: pad + (k * (H - 2 * pad)) / 4, class: "rejilla" }));
+  }
+  const camino = [m.base, ...m.ruta, m.base].map((p) => `${x(p.lon)},${y(p.lat)}`).join(" ");
+  svg.append(s("polyline", { points: camino, fill: "none", stroke: "var(--senal)", "stroke-width": 8, "stroke-linejoin": "round", "stroke-linecap": "round" }));
+  svg.append(s("polyline", { points: camino, fill: "none", stroke: "var(--tinta)", "stroke-width": 2, "stroke-linejoin": "round" }));
+  const etiqueta = (px, py, texto, negrita) => {
+    const izq = px > W - 170;
+    svg.append(s("text", { x: px + (izq ? -16 : 16), y: py + 4, "text-anchor": izq ? "end" : "start", style: negrita ? "font-weight:700" : "" }, texto));
+  };
+  m.ruta.forEach((p, k) => {
+    svg.append(s("circle", { cx: x(p.lon), cy: y(p.lat), r: 13, fill: "var(--tinta)" }));
+    svg.append(s("text", { x: x(p.lon), y: y(p.lat) + 4.5, "text-anchor": "middle", style: "fill:var(--papel);stroke:none;font-size:13px" }, String(k + 1)));
+    etiqueta(x(p.lon), y(p.lat), p.nombre, false);
+  });
+  const bx = x(m.base.lon), by = y(m.base.lat);
+  svg.append(s("rect", { x: bx - 10, y: by - 10, width: 20, height: 20, fill: "var(--mar)", stroke: "var(--tinta)", "stroke-width": 2, transform: `rotate(45 ${bx} ${by})` }));
+  etiqueta(bx, by, `${m.base.nombre} (base)`, true);
+  svg.append(s("path", { d: `M${W - 34} 34 l8 -18 l8 18 l-8 -5 z`, fill: "var(--tinta)" }));
+  svg.append(s("text", { x: W - 26, y: 56, "text-anchor": "middle", style: "font-size:12px" }, "N"));
+  return svg;
+}
+function vistaEscenario() {
+  const salida = el("div");
+  const mapaCol = el("div", { class: "mapa-col" });
+  const pintar = (r) => {
+    salida.replaceChildren(pintarBloques(r.bloques));
+    if (r.mapa) ultimoMapa = r.mapa;
+    mapaCol.replaceChildren(...(ultimoMapa ? [mapaSVG(ultimoMapa), el("p", { class: "pie-mapa" }, "Esquema de la ruta óptima. Los números indican el orden de visita; el rombo es la base.")] : []));
+  };
+  const campo = (id, etiqueta, valor, alActualizar) => el("div", { class: "campo" }, el("label", { for: id }, etiqueta),
+    el("input", { type: "text", id, value: valor, autocomplete: "off", oninput: (e) => alActualizar(e.target.value) }));
+
+  const cuerpoPuntos = el("tbody");
+  const dibujarPuntos = () => {
+    cuerpoPuntos.replaceChildren(...borrador.puntos.map((p, k) => el("tr", {},
+      el("td", {}, el("input", { type: "text", value: p.nombre, "aria-label": `Nombre del punto ${k + 1}`, oninput: (e) => (p.nombre = e.target.value) })),
+      el("td", {}, el("input", { type: "text", value: p.lat, inputmode: "decimal", "aria-label": `Latitud del punto ${k + 1}`, oninput: (e) => (p.lat = e.target.value) })),
+      el("td", {}, el("input", { type: "text", value: p.lon, inputmode: "decimal", "aria-label": `Longitud del punto ${k + 1}`, oninput: (e) => (p.lon = e.target.value) })),
+      el("td", {}, el("button", { class: "quitar", "aria-label": `Quitar el punto ${k + 1}`, title: "Quitar punto",
+        onclick: () => { borrador.puntos.splice(k, 1); dibujarPuntos(); } }, icono("quitar", 18))))));
+  };
+  dibujarPuntos();
+
+  const aplicar = () => {
+    const r = JSON.parse(api.aplicar_escenario(JSON.stringify(borrador)));
+    if (r.ok) {
+      escenario = copiar(borrador);
+      Object.keys(resultados).forEach((k) => delete resultados[k]);
+      resultadoEscenario = r;
+    }
+    actualizarGlobal(); pintar(r);
+  };
+  const restablecer = () => {
+    borrador = copiar(ESCENARIO_DEFECTO); escenario = copiar(ESCENARIO_DEFECTO);
+    Object.keys(resultados).forEach((k) => delete resultados[k]);
+    resultadoEscenario = JSON.parse(api.aplicar_escenario(JSON.stringify(escenario)));
+    ultimoMapa = resultadoEscenario.mapa; ir("escenario");
+  };
+  if (resultadoEscenario) pintar(resultadoEscenario);
+
+  return el("div", {},
+    el("div", { class: "cab-vista" }, el("h2", {}, "Datos de la jornada")),
+    el("p", { class: "historia" }, "Todas las pruebas usan esta base y estos puntos de acumulación. Cámbialos y aplícalos para ver cómo responde cada historia; los resultados anteriores se reinician."),
+    el("div", { class: "dos-col" },
+      el("div", {},
+        el("h3", { class: "sub" }, "Base de operaciones"),
+        el("div", { class: "fila-base" },
+          campo("b-nombre", "Nombre", borrador.base.nombre, (v) => (borrador.base.nombre = v)),
+          campo("b-lat", "Latitud", borrador.base.lat, (v) => (borrador.base.lat = v)),
+          campo("b-lon", "Longitud", borrador.base.lon, (v) => (borrador.base.lon = v))),
+        el("h3", { class: "sub" }, "Puntos de acumulación, en el orden de ingreso"),
+        el("div", { class: "tabla-wrap" }, el("table", { class: "puntos" },
+          el("thead", {}, el("tr", {}, el("th", {}, "Nombre"), el("th", {}, "Latitud"), el("th", {}, "Longitud"), el("th", {}, el("span", { class: "sr" }, "Quitar")))),
+          cuerpoPuntos)),
+        el("div", { class: "acciones" },
+          el("button", { class: "btn", onclick: aplicar }, "Aplicar y calcular ruta"),
+          el("button", { class: "btn sec", onclick: () => { borrador.puntos.push({ nombre: "", lat: "", lon: "" }); dibujarPuntos(); } }, "Agregar punto"),
+          el("button", { class: "btn sec", onclick: restablecer }, "Restablecer ejemplo")),
+        el("div", { style: "margin-top:24px" }, salida)),
+      mapaCol));
+}
+
+/* ---------------------------------------------------------------- resumen */
+function vistaResumen() {
+  const cifra = el("span", { class: "n" }), etiqueta = el("span", { class: "l" });
+  const cuerpo = el("tbody");
+  const boton = el("button", { class: "btn" }, "Ejecutar los 42 criterios");
+  const pintar = () => {
+    const hechos = Object.values(resultados), cumplen = hechos.filter((r) => r.ok).length;
+    cifra.textContent = String(cumplen);
+    etiqueta.textContent = `de ${total} criterios cumplidos` + (hechos.length < total ? `, ${total - hechos.length} sin probar` : "");
+    cuerpo.replaceChildren(...catalogo.map((h, i) => el("tr", {},
+      el("td", {}, el("button", { class: "ir", onclick: () => ir(String(i)) }, el("span", { class: "cod" }, h.id), h.titulo)),
+      h.criterios.map((d, j) => el("td", { title: `Criterio ${j + 1}: ${d}` }, marcador(estadoCriterio(i, j), 20))))));
+  };
+  boton.addEventListener("click", async () => {
+    boton.disabled = true;
+    for (let i = 0; i < catalogo.length; i++) for (let j = 0; j < catalogo[i].criterios.length; j++) {
+      ejecutarCriterio(i, j); pintar(); dibujarAvance(); await pausa();
+    }
+    boton.disabled = false; actualizarGlobal();
+  });
+  pintar();
+  return el("div", {},
+    el("div", { class: "cab-vista" }, el("h2", {}, "Resumen de las 14 historias")),
+    el("div", { class: "gran" }, cifra, etiqueta),
+    el("div", { class: "acciones", style: "margin-top:10px" }, boton,
+      el("button", { class: "btn sec", onclick: () => { Object.keys(resultados).forEach((k) => delete resultados[k]); actualizarGlobal(); pintar(); } }, "Borrar resultados")),
+    el("div", { class: "tabla-wrap matriz", style: "margin-top:24px" }, el("table", {},
+      el("thead", {}, el("tr", {}, el("th", {}, "Historia"), el("th", {}, "Criterio 1"), el("th", {}, "Criterio 2"), el("th", {}, "Criterio 3"))), cuerpo)));
+}
+
+/* ----------------------------------------------------------------- arranque */
 async function iniciar() {
   try {
     await new Promise((ok, fallo) => {
       const s = el("script", { src: PYODIDE_URL });
-      s.onload = ok; s.onerror = () => fallo(new Error("No se pudo descargar Pyodide (sin internet o bloqueado)."));
+      s.onload = ok; s.onerror = () => fallo(new Error("No se pudo descargar Pyodide. Revisa la conexión a internet."));
       document.head.append(s);
     });
     const py = await loadPyodide();
     py.FS.mkdir("guardianes");
-    $("carga-t").textContent = "Cargando el código de las historias…";
+    $("carga-t").textContent = "Cargando el código de las historias";
     await Promise.all(MODULOS.map(async (m) => {
       const r = await fetch(`guardianes/${m}.py`);
       if (!r.ok) throw new Error(`No se encontró guardianes/${m}.py`);
@@ -159,205 +531,19 @@ async function iniciar() {
     }));
     api = py.pyimport("guardianes.web_api");
     catalogo = JSON.parse(api.catalogo());
+    total = catalogo.reduce((a, h) => a + h.criterios.length, 0);
     resultadoEscenario = JSON.parse(api.aplicar_escenario(JSON.stringify(escenario)));
+    ultimoMapa = resultadoEscenario.mapa;
     $("carga").remove();
     ir("escenario");
   } catch (e) {
-    $("carga").querySelector(".spin")?.remove();
+    $("carga").querySelector(".giro")?.remove();
     $("carga-t").textContent = "No se pudo iniciar el simulador";
     let d = e.message || String(e);
-    if (location.protocol === "file:") d += " Abre la página desde su enlace de GitHub Pages, o con «py -m http.server» en la carpeta del repo.";
+    if (location.protocol === "file:") d += " Abre la página desde su enlace de GitHub Pages, o con «py -m http.server» en la carpeta del repositorio.";
     $("carga-d").textContent = d;
   }
 }
-
-/* ----------------------------------------------------------- navegación */
-function estadoHistoria(i) {
-  const r = catalogo[i].criterios.map((_, j) => resultados[`${i}-${j}`]);
-  const hechos = r.filter(Boolean);
-  if (!hechos.length) return "";
-  if (hechos.some((x) => !x.ok)) return "mal";
-  return hechos.length === r.length ? "ok" : "warn";
-}
-function dibujarNav() {
-  const nav = $("nav");
-  nav.replaceChildren();
-  const item = (clave, id, titulo, estado) => el("button", {
-    "aria-current": vista === clave ? "page" : null, onclick: () => ir(clave)
-  }, el("span", { class: "dot " + (estado || "") }), el("span", { class: "id" }, id), el("span", { class: "t" }, titulo));
-  nav.append(item("escenario", "Datos", "Escenario", resultadoEscenario?.ok ? "ok" : "mal"));
-  catalogo.forEach((h, i) => nav.append(item(String(i), h.id, h.titulo, estadoHistoria(i))));
-  nav.append(item("resumen", "Todo", "Resumen de los 42 criterios", ""));
-}
-function actualizarTotal() {
-  const lista = Object.values(resultados);
-  const cumplen = lista.filter((r) => r.ok).length;
-  const chip = $("total");
-  chip.textContent = lista.length ? `${cumplen} de 42 criterios cumplidos` : "0 de 42 criterios cumplidos";
-  chip.className = "chip" + (lista.length && lista.every((r) => r.ok) && lista.length === 42 ? " ok" : lista.some((r) => !r.ok) ? " mal" : "");
-}
-function ir(v) {
-  vista = v;
-  dibujarNav();
-  actualizarTotal();
-  const main = $("main");
-  main.replaceChildren(v === "escenario" ? vistaEscenario() : v === "resumen" ? vistaResumen() : vistaHistoria(Number(v)));
-}
-
-/* ------------------------------------------------------------- historias */
-function bloqueResultado(r) {
-  if (!r) return null;
-  const caja = el("div", { class: "res " + (r.ok ? "ok" : "mal"), role: "status" },
-    el("div", { class: "badge" }, r.ok ? "✔ CUMPLE" : "✘ NO CUMPLE"), el("pre", {}, r.texto));
-  if (r.grafico) caja.append(graficoBarras(r.grafico));
-  if (r.archivos?.length) {
-    const d = el("div", { class: "descarga" });
-    for (const a of r.archivos) {
-      const bytes = Uint8Array.from(atob(a.base64), (c) => c.charCodeAt(0));
-      const url = URL.createObjectURL(new Blob([bytes], { type: a.mime }));
-      d.append(el("a", { href: url, download: a.nombre, target: "_blank", rel: "noopener" }, `Descargar ${a.nombre}`));
-    }
-    caja.append(d);
-  }
-  return caja;
-}
-function graficoBarras(g) {
-  const ns = "http://www.w3.org/2000/svg";
-  const s = (tag, attrs, txt) => { const e = document.createElementNS(ns, tag); for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v); if (txt != null) e.textContent = txt; return e; };
-  const W = 520, H = 280, base = 220, alto = 170, ancho = 110;
-  const maximo = Math.max(...g.barras.map((b) => b.valor), 0);
-  const escala = maximo || 1;   // con todo en cero, el eje va de 0 a 1
-  const svg = s("svg", { viewBox: `0 0 ${W} ${H}`, class: "barras", role: "img", "aria-label": g.titulo });
-  svg.append(s("text", { x: W / 2, y: 24, "text-anchor": "middle", style: "font-weight:700" }, g.titulo));
-  [0, 0.5, 1].forEach((f) => {
-    const y = base - alto * f;
-    svg.append(s("line", { x1: 50, x2: W - 20, y1: y, y2: y, stroke: "var(--line)", "stroke-width": 1 }));
-    svg.append(s("text", { x: 44, y: y + 4, "text-anchor": "end", style: "fill:var(--mute)" }, String(Math.round(escala * f * 10) / 10)));
-  });
-  g.barras.forEach((b, k) => {
-    const x = 90 + k * (ancho + 90);
-    const h = maximo === 0 ? 0 : (b.valor / maximo) * alto;
-    svg.append(s("rect", { x, y: base - h, width: ancho, height: h, rx: 4, fill: k === 0 ? "var(--brand)" : "var(--mute)" }));
-    svg.append(s("text", { x: x + ancho / 2, y: base - h - 8, "text-anchor": "middle", style: "font-weight:700" }, `${b.valor} ${g.unidad}`));
-    svg.append(s("text", { x: x + ancho / 2, y: base + 22, "text-anchor": "middle" }, b.etiqueta));
-  });
-  return svg;
-}
-function ejecutarCriterio(i, j) {
-  resultados[`${i}-${j}`] = JSON.parse(api.ejecutar(i, j, JSON.stringify(escenario)));
-}
-function vistaHistoria(i) {
-  const h = catalogo[i];
-  const cont = el("div");
-  cont.append(el("div", { class: "card" }, el("h2", {}, `${h.id} · ${h.titulo}`), el("p", { class: "historia" }, h.historia),
-    el("div", { class: "acciones" },
-      el("button", { class: "btn", onclick: () => { h.criterios.forEach((_, j) => ejecutarCriterio(i, j)); ir(String(i)); } }, "Probar los 3 criterios"),
-      el("button", { class: "btn sec", onclick: () => { h.criterios.forEach((_, j) => delete resultados[`${i}-${j}`]); ir(String(i)); } }, "Limpiar"))));
-  h.criterios.forEach((desc, j) => {
-    cont.append(el("div", { class: "card" },
-      el("div", { class: "crit" },
-        el("div", {}, el("div", { class: "n" }, `Criterio ${j + 1}`), el("p", {}, desc)),
-        el("button", { class: "btn", onclick: () => { ejecutarCriterio(i, j); ir(String(i)); } }, "Probar")),
-      bloqueResultado(resultados[`${i}-${j}`])));
-  });
-  return cont;
-}
-
-/* -------------------------------------------------------------- escenario */
-function textoPuntos(p) { return p.map((x) => `${x.nombre}, ${x.lat}, ${x.lon}`).join("\n"); }
-function mapaSVG(m) {
-  const todos = [m.base, ...m.ruta];
-  const lats = todos.map((p) => p.lat), lons = todos.map((p) => p.lon);
-  const [la0, la1, lo0, lo1] = [Math.min(...lats), Math.max(...lats), Math.min(...lons), Math.max(...lons)];
-  const W = 640, H = 340, pad = 50;
-  const x = (lo) => pad + (lo1 === lo0 ? (W - 2 * pad) / 2 : ((lo - lo0) / (lo1 - lo0)) * (W - 2 * pad));
-  const y = (la) => H - pad - (la1 === la0 ? (H - 2 * pad) / 2 : ((la - la0) / (la1 - la0)) * (H - 2 * pad));
-  const ns = "http://www.w3.org/2000/svg";
-  const s = (tag, attrs, txt) => { const e = document.createElementNS(ns, tag); for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v); if (txt) e.textContent = txt; return e; };
-  const svg = s("svg", { viewBox: `0 0 ${W} ${H}`, class: "mapa", role: "img", "aria-label": "Mapa esquemático de la ruta óptima" });
-  const camino = [m.base, ...m.ruta, m.base];
-  svg.append(s("polyline", { points: camino.map((p) => `${x(p.lon)},${y(p.lat)}`).join(" "), fill: "none", stroke: "var(--map-line)", "stroke-width": 2.5, "stroke-dasharray": "7 5" }));
-  m.ruta.forEach((p, k) => {
-    svg.append(s("circle", { cx: x(p.lon), cy: y(p.lat), r: 11, fill: "var(--map-line)" }));
-    svg.append(s("text", { x: x(p.lon), y: y(p.lat) + 4, "text-anchor": "middle", style: "fill:var(--brand-ink);font-weight:700" }, String(k + 1)));
-    const izq = x(p.lon) > W - 170;
-    svg.append(s("text", { x: x(p.lon) + (izq ? -15 : 15), y: y(p.lat) + 4, "text-anchor": izq ? "end" : "start" }, p.nombre));
-  });
-  svg.append(s("rect", { x: x(m.base.lon) - 9, y: y(m.base.lat) - 9, width: 18, height: 18, fill: "var(--ok)" }));
-  const izqB = x(m.base.lon) > W - 200;
-  svg.append(s("text", { x: x(m.base.lon) + (izqB ? -15 : 15), y: y(m.base.lat) + 4, "text-anchor": izqB ? "end" : "start", style: "font-weight:700" }, `${m.base.nombre} (base)`));
-  return svg;
-}
-function vistaEscenario() {
-  borrador ??= { nombre: escenario.base.nombre, lat: String(escenario.base.lat), lon: String(escenario.base.lon), puntos: textoPuntos(escenario.puntos) };
-  const nombre = el("input", { id: "b-n", value: borrador.nombre });
-  const lat = el("input", { id: "b-la", value: borrador.lat, inputmode: "decimal" });
-  const lon = el("input", { id: "b-lo", value: borrador.lon, inputmode: "decimal" });
-  const puntos = el("textarea", { id: "b-p", spellcheck: "false" }, borrador.puntos);
-  const salida = el("div");
-  const pintar = (r) => { salida.replaceChildren(bloqueResultado(r)); if (r.mapa) salida.append(mapaSVG(r.mapa)); };
-  if (resultadoEscenario) pintar(resultadoEscenario);
-  const aplicar = () => {
-    borrador = { nombre: nombre.value, lat: lat.value, lon: lon.value, puntos: puntos.value };
-    const lineas = puntos.value.split("\n").map((l) => l.trim()).filter(Boolean);
-    const nuevos = [];
-    for (const [n, l] of lineas.entries()) {
-      const partes = l.split(",").map((t) => t.trim());
-      if (partes.length !== 3) { pintar({ ok: false, texto: `Línea ${n + 1}: use «nombre, latitud, longitud»` }); return; }
-      nuevos.push({ nombre: partes[0], lat: partes[1], lon: partes[2] });
-    }
-    const candidato = { base: { nombre: nombre.value, lat: lat.value, lon: lon.value }, puntos: nuevos };
-    const r = JSON.parse(api.aplicar_escenario(JSON.stringify(candidato)));
-    if (r.ok) {
-      escenario = { base: { nombre: nombre.value.trim(), lat: Number(lat.value), lon: Number(lon.value) },
-                    puntos: nuevos.map((p) => ({ nombre: p.nombre, lat: Number(p.lat), lon: Number(p.lon) })) };
-      Object.keys(resultados).forEach((k) => delete resultados[k]);
-    }
-    if (r.ok) resultadoEscenario = r;
-    dibujarNav(); actualizarTotal(); pintar(r);
-  };
-  const restablecer = () => { escenario = JSON.parse(JSON.stringify(ESCENARIO_DEFECTO)); borrador = null; Object.keys(resultados).forEach((k) => delete resultados[k]); resultadoEscenario = JSON.parse(api.aplicar_escenario(JSON.stringify(escenario))); ir("escenario"); };
-  return el("div", {},
-    el("div", { class: "card" }, el("h2", {}, "Datos de la jornada"),
-      el("p", { class: "historia" }, "Todas las pruebas de las historias usan estos datos. Puedes cambiarlos y volver a aplicarlos: las pruebas ya hechas se reinician."),
-      el("div", { class: "fila", style: "margin-top:14px" },
-        el("div", {}, el("label", { for: "b-n" }, "Base"), nombre), el("div", {}, el("label", { for: "b-la" }, "Latitud"), lat), el("div", {}, el("label", { for: "b-lo" }, "Longitud"), lon)),
-      el("label", { for: "b-p" }, "Puntos de acumulación, en el orden de ingreso (uno por línea: nombre, latitud, longitud)"), puntos,
-      el("div", { class: "acciones" }, el("button", { class: "btn", onclick: aplicar }, "Aplicar y calcular ruta óptima"), el("button", { class: "btn sec", onclick: restablecer }, "Restablecer datos de ejemplo"))),
-    el("div", { class: "card" }, salida));
-}
-
-/* ---------------------------------------------------------------- resumen */
-function vistaResumen() {
-  const total = catalogo.reduce((a, h) => a + h.criterios.length, 0);
-  const lista = el("ul", { class: "lista" });
-  const barra = el("div"); const progreso = el("div", { class: "barra" }, barra);
-  const titulo = el("h2", {}, "Resumen de las 14 historias");
-  const boton = el("button", { class: "btn", disabled: resumenEstado.corriendo }, "Ejecutar los 42 criterios");
-  const pintarLista = () => {
-    lista.replaceChildren();
-    catalogo.forEach((h, i) => h.criterios.forEach((desc, j) => {
-      const r = resultados[`${i}-${j}`];
-      lista.append(el("li", { class: r ? (r.ok ? "ok" : "mal") : "" }, el("span", { class: "m" }, r ? (r.ok ? "✔" : "✘") : "·"), el("span", { class: "hu" }, `${h.id} · ${j + 1}`), el("span", {}, desc)));
-    }));
-    const hechos = Object.keys(resultados).length;
-    barra.style.width = `${(100 * hechos) / total}%`;
-  };
-  boton.addEventListener("click", async () => {
-    resumenEstado.corriendo = true; boton.disabled = true;
-    for (let i = 0; i < catalogo.length; i++) {
-      for (let j = 0; j < catalogo[i].criterios.length; j++) { ejecutarCriterio(i, j); pintarLista(); actualizarTotal(); dibujarNav(); await pausa(); }
-    }
-    resumenEstado.corriendo = false; boton.disabled = false;
-    const cumplen = Object.values(resultados).filter((r) => r.ok).length;
-    titulo.textContent = `${cumplen} de ${total} criterios cumplidos`;
-  });
-  pintarLista();
-  const hechos = Object.values(resultados);
-  if (hechos.length === total) titulo.textContent = `${hechos.filter((r) => r.ok).length} de ${total} criterios cumplidos`;
-  return el("div", { class: "card" }, titulo, el("div", { class: "acciones" }, boton), progreso, lista);
-}
-
 iniciar();
 </script>
 </body>

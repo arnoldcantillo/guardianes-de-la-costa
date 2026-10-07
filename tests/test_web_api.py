@@ -45,6 +45,25 @@ class TestWebApi(unittest.TestCase):
         r = json.loads(web_api.ejecutar(8, 0, esc))      # HU-09: no genera archivos
         self.assertEqual(r["archivos"], [])
 
+    def test_bloques_hu03_y_tablas(self):
+        esc = json.dumps(ESCENARIO)
+        r = json.loads(web_api.ejecutar(2, 0, esc))       # HU-03 criterio 1: gráfico de barras
+        self.assertTrue(r["ok"])
+        barras = next(b for b in r["bloques"] if b["t"] == "barras")
+        self.assertEqual({x["etiqueta"]: x["valor"] for x in barras["barras"]},
+                         {"Con optimizador": 140, "Sin optimizador": 175})
+        r = json.loads(web_api.ejecutar(2, 1, esc))       # enero vacío: todo en cero
+        self.assertTrue(r["ok"])
+        barras = next(b for b in r["bloques"] if b["t"] == "barras")
+        self.assertTrue(all(x["valor"] == 0 for x in barras["barras"]))
+        r = json.loads(web_api.ejecutar(10, 0, esc))      # HU-11 criterio 1: tabla del historial
+        self.assertEqual(next(b for b in r["bloques"] if b["t"] == "tabla")["cabeceras"][0], "Fecha")
+
+    def test_ruta_del_escenario_trae_tabla_y_mapa(self):
+        r = json.loads(web_api.aplicar_escenario(json.dumps(ESCENARIO)))
+        self.assertIn("tabla", [b["t"] for b in r["bloques"]])
+        self.assertEqual(len(r["mapa"]["ruta"]), 3)
+
 
 if __name__ == "__main__":
     unittest.main()

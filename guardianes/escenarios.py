@@ -1,7 +1,9 @@
 """Un escenario ejecutable por cada criterio de aceptación (HU-01 a HU-14).
 
 No depende de ninguna interfaz: cada función recibe un Contexto y devuelve
-(cumple, texto). La ventana (simulador.py) solo muestra estos resultados.
+(cumple, contenido). El contenido es una lista de bloques (ver bloques.py) o,
+en los casos simples, un texto. La página web y el simulador de escritorio
+solo muestran estos resultados.
 """
 from __future__ import annotations
 
@@ -14,6 +16,8 @@ from pathlib import Path
 from typing import Callable
 from unittest import mock
 
+from .bloques import (a_texto, aviso, barras, celda, documento, lista, pares, parrafo,
+                      porcentajes, tabla)
 from .hu01_asignar_cuadrilla import AsignacionRechazada, Cuadrilla, Despacho
 from .hu02_coordenadas import CoordenadasFueraDeLimite, calcular_ruta, crear_punto
 from .hu03_panel import Jornada, PanelControl
@@ -28,10 +32,12 @@ from .hu11_historial import VACIO, Historial
 from .hu12_exportar import ErrorExportacion, exportar_txt, generar_resumen
 from .hu13_auditoria import Auditoria
 from .hu14_muelles import Muelles
-from .nucleo import TIPOS_RESIDUO, Embarcacion, Punto
+from .nucleo import OMITIDO, TIPOS_RESIDUO, Embarcacion, Punto
 
 SALIDAS = Path("salidas")
-Resultado = tuple[bool, str]
+Resultado = tuple[bool, "str | list[dict]"]
+MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto",
+         "septiembre", "octubre", "noviembre", "diciembre"]
 
 
 @dataclass
@@ -66,11 +72,18 @@ def _ruta_completada(ctx: Contexto):
     return ruta
 
 
+def tabla_ruta(ruta) -> dict:
+    return tabla(["Orden", "Punto", "Latitud", "Longitud"],
+                 [[i, p.nombre, p.lat, p.lon] for i, p in enumerate(ruta.puntos, 1)])
+
+
 # ---------------------------------------------------------------- HU-01
 def _hu01_c1(ctx: Contexto) -> Resultado:
     d = Despacho([Cuadrilla("Alfa"), Cuadrilla("Beta")])
     nombres = [c.nombre for c in d.disponibles()]
-    return nombres == ["Alfa", "Beta"], "Equipos operativos disponibles: " + ", ".join(nombres)
+    return nombres == ["Alfa", "Beta"], [
+        parrafo("Al pulsar «Asignar Cuadrilla» se despliegan los equipos operativos disponibles:"),
+        lista(nombres)]
 
 
 def _hu01_c2(ctx: Contexto) -> Resultado:
@@ -78,8 +91,8 @@ def _hu01_c2(ctx: Contexto) -> Resultado:
     antes = d.panel_general()["Alfa"]
     d.asignar(ctx.ruta(), "Alfa")
     despues = d.panel_general()["Alfa"]
-    return (antes == "Disponible" and despues == "En Operación",
-            f"Ruta asignada a la Cuadrilla Alfa.\nPanel general: Alfa pasó de «{antes}» a «{despues}»")
+    return antes == "Disponible" and despues == "En Operación", [
+        pares(("Cuadrilla", "Alfa"), ("Estado antes de asignar", antes), ("Estado en el panel general", despues))]
 
 
 def _hu01_c3(ctx: Contexto) -> Resultado:
@@ -89,23 +102,25 @@ def _hu01_c3(ctx: Contexto) -> Resultado:
     try:
         d.asignar(ruta, "Alfa")
     except AsignacionRechazada as e:
-        return True, f"Asignación rechazada.\n{e}"
-    return False, "El sistema aceptó asignar una cuadrilla que ya estaba En Operación"
+        return True, [aviso("amarillo", "Asignación rechazada", str(e))]
+    return False, [aviso("rojo", "El sistema aceptó asignar una cuadrilla que ya estaba En Operación")]
 
 
 # ---------------------------------------------------------------- HU-02
 def _hu02_c1(ctx: Contexto) -> Resultado:
     ruta = ctx.ruta()
-    texto = "\n".join(ruta.detalle()) + f"\nDistancia total: {ruta.distancia_km:.2f} km"
-    return len(ruta.puntos) == len(ctx.puntos), "Ruta óptima generada:\n" + texto
+    return len(ruta.puntos) == len(ctx.puntos), [
+        parrafo("Ruta óptima de navegación, de la base a cada punto y de regreso:"),
+        tabla_ruta(ruta),
+        pares(("Base", ctx.base.nombre), ("Distancia total", f"{ruta.distancia_km:.2f} km"))]
 
 
 def _hu02_c2(ctx: Contexto) -> Resultado:
     try:
         crear_punto("Fuera del área", 40.0, -3.7)
     except CoordenadasFueraDeLimite as e:
-        return True, f"Acción bloqueada con el mensaje: «{e}»"
-    return False, "El sistema aceptó coordenadas fuera del área navegable"
+        return True, [aviso("rojo", str(e), "La acción se bloqueó y no se calculó la ruta.")]
+    return False, [aviso("rojo", "El sistema aceptó coordenadas fuera del área navegable")]
 
 
 def _hu02_c3(ctx: Contexto) -> Resultado:
@@ -114,7 +129,8 @@ def _hu02_c3(ctx: Contexto) -> Resultado:
     t0 = time.perf_counter()
     calcular_ruta(ctx.base, pts)
     seg = time.perf_counter() - t0
-    return seg < 2.0, f"Ruta con 50 puntos calculada en {seg:.3f} s (máximo permitido: 2 s)"
+    return seg < 2.0, [pares(("Puntos de recolección", 50), ("Tiempo de cálculo", f"{seg * 1000:.0f} ms"),
+                             ("Máximo permitido", "2 s"))]
 
 
 # ---------------------------------------------------------------- HU-03
@@ -125,71 +141,88 @@ def _panel() -> PanelControl:
     return p
 
 
+def _bloques_panel(anio: int, mes: int):
+    r = _panel().resumen_mes(anio, mes)
+    periodo = f"{MESES[mes - 1]} {anio}"
+    return r, [barras(f"Combustible en {periodo}", "L",
+                      [("Con optimizador", r["combustible_real_l"]), ("Sin optimizador", r["combustible_sin_optimizador_l"])]),
+               pares(("Combustible ahorrado", f"{r['combustible_ahorrado_l']} L"),
+                     ("Plástico retirado", f"{r['plastico_kg']} kg"))]
+
+
 def _hu03_c1(ctx: Contexto) -> Resultado:
-    g = _panel().grafico_barras(2026, 9)
-    return "Sin optimizador" in g, g
+    r, bloques = _bloques_panel(2026, 9)
+    return r["combustible_ahorrado_l"] > 0, bloques
 
 
 def _hu03_c2(ctx: Contexto) -> Resultado:
-    p = _panel()
-    r = p.resumen_mes(2026, 1)
-    return all(v == 0 for v in r.values()), f"Enero 2026 (sin jornadas): {r}\n\n{p.grafico_barras(2026, 1)}"
+    r, bloques = _bloques_panel(2026, 1)
+    return all(v == 0 for v in r.values()), bloques
 
 
 def _hu03_c3(ctx: Contexto) -> Resultado:
     SALIDAS.mkdir(exist_ok=True)
     destino = _panel().generar_pdf(2026, 9, SALIDAS / "panel_septiembre_2026.pdf")
     ok = destino.exists() and destino.read_bytes().startswith(b"%PDF")
-    return ok, f"PDF generado: {destino.as_posix()}"
+    return ok, [pares(("Documento generado", destino.name), ("Contenido", "Las mismas cifras y el gráfico de barras del mes"))]
 
 
 # ---------------------------------------------------------------- HU-04
 def _hu04_c1(ctx: Contexto) -> Resultado:
     a = estimar_ahorro(ctx.base, ctx.copia(), _lancha())
-    return a.porcentaje >= 0, (f"Recorrido empírico (orden de ingreso): {a.km_empirico:.2f} km\n"
-                               f"Ruta calculada: {a.km_calculado:.2f} km\n{a.reporte()}")
+    return a.porcentaje >= 0, [pares(
+        ("Recorrido empírico (orden de ingreso)", f"{a.km_empirico:.2f} km"),
+        ("Ruta calculada", f"{a.km_calculado:.2f} km"),
+        ("Ahorro de distancia", f"{a.porcentaje:.1f}%"),
+        ("Meta de 15% a 20%", "Alcanzada" if a.alcanza_meta else "No alcanzada"),
+        ("Combustible ahorrado", f"{a.litros_ahorrados:.2f} litros"))]
 
 
 def _hu04_c2(ctx: Contexto) -> Resultado:
     optima = ctx.ruta().puntos
     a = estimar_ahorro(ctx.base, optima, _lancha(), optima)
-    return a.porcentaje == 0.0 and "óptima" in a.reporte(), "Trayecto empírico igual al calculado:\n" + a.reporte()
+    return a.porcentaje == 0.0 and "óptima" in a.reporte(), [
+        aviso("verde", "Ahorro del 0%", "La ruta actual es óptima."),
+        pares(("Recorrido empírico", f"{a.km_empirico:.2f} km"), ("Ruta calculada", f"{a.km_calculado:.2f} km"))]
 
 
 def _hu04_c3(ctx: Contexto) -> Resultado:
-    rep = estimar_ahorro(ctx.base, ctx.copia(), _lancha()).reporte()
-    return "litros" in rep, rep
+    a = estimar_ahorro(ctx.base, ctx.copia(), _lancha())
+    return "litros" in a.reporte(), [pares(("Ahorro estimado de combustible", f"{a.litros_ahorrados:.2f} litros"))]
 
 
 # ---------------------------------------------------------------- HU-05
 def _hu05_c1(ctx: Contexto) -> Resultado:
     ruta = ctx.ruta()
     if len(ruta.puntos) < 3:
-        return False, "Se necesitan al menos 3 puntos para omitir uno intermedio"
+        return False, [aviso("rojo", "Se necesitan al menos 3 puntos para omitir uno intermedio")]
     nombre = ruta.puntos[1].nombre
     nueva = omitir_por_clima(ruta, nombre)
     ok = nueva.distancia_km <= ruta.distancia_km + 1e-9
-    return ok, (f"Omitido por clima: {nombre}\nDistancia antes: {ruta.distancia_km:.2f} km\n"
-                f"Distancia recalculada: {nueva.distancia_km:.2f} km (une el nodo anterior con el siguiente)")
+    return ok, [pares(("Punto omitido por clima", nombre), ("Distancia antes", f"{ruta.distancia_km:.2f} km"),
+                      ("Distancia recalculada", f"{nueva.distancia_km:.2f} km")),
+                parrafo("El sistema une el nodo anterior con el siguiente.")]
 
 
 def _hu05_c2(ctx: Contexto) -> Resultado:
     ruta = ctx.ruta()
     nueva = omitir_por_clima(ruta, ruta.puntos[1].nombre)
-    detalle = "\n".join(nueva.detalle())
-    return "[Omitido]" in detalle, "Historial de la ruta:\n" + detalle
+    filas = [[i, p.nombre, celda("Omitido", "amarillo") if p.estado == OMITIDO else p.estado]
+             for i, p in enumerate(nueva.puntos, 1)]
+    return any(p.estado == OMITIDO for p in nueva.puntos), [
+        parrafo("Ruta guardada en el historial:"), tabla(["Orden", "Punto", "Estado"], filas)]
 
 
 def _hu05_c3(ctx: Contexto) -> Resultado:
     ruta = ctx.ruta()
-    mensajes = []
+    avisos = []
     for nombre in (ruta.base.nombre, ruta.puntos[-1].nombre):
         try:
             omitir_por_clima(ruta, nombre)
-            return False, f"El sistema dejó omitir {nombre}"
+            return False, [aviso("rojo", f"El sistema dejó omitir {nombre}")]
         except PuntoFijo as e:
-            mensajes.append(f"{nombre}: bloqueado. {e}")
-    return True, "\n".join(mensajes)
+            avisos.append(aviso("rojo", f"No se puede omitir «{nombre}»", str(e)))
+    return True, avisos
 
 
 # ---------------------------------------------------------------- HU-06
@@ -197,13 +230,14 @@ def _hu06_c1(ctx: Contexto) -> Resultado:
     e = Catalogo().seleccionar("Lancha Rápida")[0]
     dist = ctx.ruta().distancia_km
     consumo = consumo_ruta(dist, e)
-    return (abs(consumo - dist * e.consumo_l_km) < 1e-9,
-            f"{e.nombre}: factor {e.consumo_l_km} L/km\n{dist:.2f} km × {e.consumo_l_km} = {consumo:.2f} L")
+    return abs(consumo - dist * e.consumo_l_km) < 1e-9, [pares(
+        ("Embarcación", e.nombre), ("Factor de consumo", f"{e.consumo_l_km} L/km"),
+        ("Distancia del grafo", f"{dist:.2f} km"), ("Consumo estimado", f"{consumo:.2f} L"))]
 
 
 def _hu06_c2(ctx: Contexto) -> Resultado:
-    e, aviso = Catalogo().seleccionar(None)
-    return e.nombre == ESTANDAR and bool(aviso), f"Embarcación usada: {e.nombre}\nAviso al usuario: {aviso}"
+    e, mensaje = Catalogo().seleccionar(None)
+    return e.nombre == ESTANDAR and bool(mensaje), [aviso("info", f"Se usa la {e.nombre}", mensaje)]
 
 
 def _hu06_c3(ctx: Contexto) -> Resultado:
@@ -211,7 +245,8 @@ def _hu06_c3(ctx: Contexto) -> Resultado:
         archivo = Path(t) / "lanchas.json"
         Catalogo(archivo).agregar("Delfín", "D-30", 1.7, 90)
         ok = "Delfín" in Catalogo(archivo).items
-    return ok, "Lancha «Delfín» (modelo D-30, 1.7 L/km) guardada y encontrada al reabrir el catálogo"
+    return ok, [aviso("verde", "Lancha guardada en el catálogo", "Sigue disponible al volver a abrir el catálogo."),
+                pares(("Nombre", "Delfín"), ("Modelo", "D-30"), ("Consumo", "1.7 L/km"))]
 
 
 # ---------------------------------------------------------------- HU-07
@@ -222,22 +257,24 @@ def _hu07_c1(ctx: Contexto) -> Resultado:
     try:
         j.completar_punto(nombre, None, "Plásticos")
     except ValueError as e:
+        mensaje = str(e)
         j.completar_punto(nombre, 12.5, "Plásticos")
-        return True, f"Sin peso: {e}\nCon 12.5 kg: {nombre} queda «{ruta.puntos[0].estado}»"
-    return False, "El sistema dejó completar el punto sin peso"
+        return True, [aviso("amarillo", "No se puede completar sin peso", mensaje),
+                      pares(("Punto", nombre), ("Peso registrado", "12.5 kg"), ("Estado", ruta.puntos[0].estado))]
+    return False, [aviso("rojo", "El sistema dejó completar el punto sin peso")]
 
 
 def _hu07_c2(ctx: Contexto) -> Resultado:
     ruta = ctx.ruta()
     j = RegistroJornada(ruta)
-    salidas = []
+    filas = []
     for malo in ("-5", "abc"):
         try:
             j.completar_punto(ruta.puntos[0].nombre, malo, "Plásticos")
-            return False, f"El sistema aceptó «{malo}»"
+            return False, [aviso("rojo", f"El sistema aceptó «{malo}»")]
         except FormatoInvalido as e:
-            salidas.append(f"«{malo}» → {e}")
-    return True, "\n".join(salidas)
+            filas.append([malo, celda(str(e), "rojo")])
+    return True, [tabla(["Valor ingresado", "Resultado"], filas)]
 
 
 def _hu07_c3(ctx: Contexto) -> Resultado:
@@ -246,30 +283,32 @@ def _hu07_c3(ctx: Contexto) -> Resultado:
     for p in ruta.puntos:
         j.completar_punto(p.nombre, 10.0, "Plásticos")
     total = j.cerrar_jornada()
-    return total == 10.0 * len(ruta.puntos), f"Jornada cerrada. Total recolectado: {total} kg"
+    return total == 10.0 * len(ruta.puntos), [
+        pares(("Puntos completados", len(ruta.puntos)), ("Total recolectado", f"{total:g} kg"))]
 
 
 # ---------------------------------------------------------------- HU-08
 def _hu08_c1(ctx: Contexto) -> Resultado:
     malos = [Punto("A", 10.99, -74.85), Punto("A", 10.0, -74.8), Punto("", 10.95, -74.88)]
     r = validar_entrada(ctx.base, malos)
-    return (not r.puede_calcular and bool(r.errores),
-            "Datos con fallas:\n- " + "\n- ".join(r.errores) + "\nEl cálculo NO se ejecutó.")
+    return not r.puede_calcular and bool(r.errores), [
+        aviso("rojo", "El cálculo no se ejecutó", "Estos datos fallaron:"), lista(r.errores)]
 
 
 def _hu08_c2(ctx: Contexto) -> Resultado:
     try:
         validar_coordenada_texto("10.9a$", "latitud")
     except ErrorValidacion as e:
-        return True, f"Campo bloqueado: {e}"
-    return False, "El sistema aceptó letras y símbolos en la coordenada"
+        return True, [aviso("rojo", "Campo bloqueado", str(e))]
+    return False, [aviso("rojo", "El sistema aceptó letras y símbolos en la coordenada")]
 
 
 def _hu08_c3(ctx: Contexto) -> Resultado:
     r = validar_entrada(ctx.base, ctx.copia())
-    return (r.puede_calcular and not r.errores,
-            "Todos los campos correctos: botón de cálculo habilitado, sin advertencias."
-            if r.puede_calcular else "Errores:\n- " + "\n- ".join(r.errores))
+    if r.puede_calcular and not r.errores:
+        return True, [aviso("verde", "Todos los campos son correctos",
+                            "El botón de cálculo está habilitado, sin advertencias.")]
+    return False, [aviso("rojo", "Hay datos con errores"), lista(r.errores)]
 
 
 # ---------------------------------------------------------------- HU-09
@@ -281,44 +320,45 @@ def _alerta(ctx: Contexto, factor: float):
 
 def _hu09_c1(ctx: Contexto) -> Resultado:
     a, dist, lancha = _alerta(ctx, 1.25)
-    return (a.color == ROJO and "Combustible Insuficiente" in a.mensaje,
-            f"Ruta de {dist:.1f} km con tanque de {lancha.tanque_l:.1f} L ({a.porcentaje_tanque:.0f}% del tanque)\n"
-            f"BANNER ROJO: {a.mensaje}")
+    return a.color == ROJO and "Combustible Insuficiente" in a.mensaje, [
+        aviso("rojo", a.mensaje, f"La ruta de {dist:.1f} km consume el {a.porcentaje_tanque:.0f}% de un tanque de {lancha.tanque_l:.1f} L.")]
 
 
 def _hu09_c2(ctx: Contexto) -> Resultado:
     a, _, _ = _alerta(ctx, 1.25)
     ok = bool(a.sugerencia) and "dos días" in a.sugerencia and "mayor capacidad" in a.sugerencia
-    return ok, f"Sugerencia: {a.sugerencia}"
+    return ok, [aviso("rojo", a.mensaje, a.sugerencia)]
 
 
 def _hu09_c3(ctx: Contexto) -> Resultado:
     a, _, _ = _alerta(ctx, 0.92)
-    return (a.color == AMARILLO and a.mensaje == "Nivel de combustible al límite",
-            f"Consumo al {a.porcentaje_tanque:.0f}% del tanque\nALERTA AMARILLA: {a.mensaje}")
+    return a.color == AMARILLO and a.mensaje == "Nivel de combustible al límite", [
+        aviso("amarillo", a.mensaje, f"El consumo estimado es el {a.porcentaje_tanque:.0f}% de la capacidad del tanque.")]
 
 
 # ---------------------------------------------------------------- HU-10
 def _hu10_c1(ctx: Contexto) -> Resultado:
     try:
         validar_residuo(None)
-    except ValueError as e:
-        return True, f"Sin seleccionar tipo: {e}\nOpciones del menú: " + ", ".join(TIPOS_RESIDUO)
-    return False, "El sistema dejó continuar sin tipo de residuo"
+    except ValueError:
+        return True, [aviso("amarillo", "Falta el tipo de residuo", "El menú es obligatorio para completar el punto."),
+                      parrafo("Opciones del menú desplegable:"), lista(TIPOS_RESIDUO)]
+    return False, [aviso("rojo", "El sistema dejó continuar sin tipo de residuo")]
 
 
 def _hu10_c2(ctx: Contexto) -> Resultado:
     h = Historial()
     h.guardar(_ruta_completada(ctx))
     res = filtrar_historial(h.registros, "Plásticos")
-    lineas = [f"Ruta {r.ruta_id}: " + ", ".join(p.nombre for p in nodos) for r, nodos in res]
-    return len(res) >= 1, "Filtro «Plásticos»:\n" + "\n".join(lineas)
+    filas = [[r.ruta_id, ", ".join(p.nombre for p in nodos)] for r, nodos in res]
+    return len(res) >= 1, [parrafo("Filtro aplicado: Plásticos."),
+                           tabla(["Ruta", "Nodos con plástico como residuo predominante"], filas)]
 
 
 def _hu10_c3(ctx: Contexto) -> Resultado:
     d = desglose_porcentual(_ruta_completada(ctx).puntos)
-    return (abs(sum(d.values()) - 100) < 0.5,
-            "Porcentaje del peso total por material:\n" + "\n".join(f"- {t}: {p}%" for t, p in d.items()))
+    return abs(sum(d.values()) - 100) < 0.5, [
+        parrafo("Porcentaje del peso total recolectado, por tipo de material:"), porcentajes(list(d.items()))]
 
 
 # ---------------------------------------------------------------- HU-11
@@ -326,8 +366,9 @@ def _hu11_c1(ctx: Contexto) -> Resultado:
     h = Historial()
     h.guardar(ctx.ruta(), datetime(2026, 9, 7, 8, 0))
     h.guardar(ctx.ruta(), datetime(2026, 9, 14, 9, 30))
-    texto = h.listar()
-    return len(texto.splitlines()) == 2, "Fecha | Ruta | Distancia | Puntos\n" + texto
+    filas = [[f"{r.fecha:%Y-%m-%d %H:%M}", r.ruta_id, f"{r.distancia_km:.2f} km", ", ".join(p.nombre for p in r.puntos)]
+             for r in sorted(h.registros, key=lambda r: r.fecha, reverse=True)]
+    return len(filas) == 2, [tabla(["Fecha", "Ruta", "Distancia", "Puntos de recolección"], filas)]
 
 
 def _hu11_c2(ctx: Contexto) -> Resultado:
@@ -335,14 +376,15 @@ def _hu11_c2(ctx: Contexto) -> Resultado:
     for f in (datetime(2026, 9, 7), datetime(2026, 9, 10), datetime(2026, 8, 20)):
         h.guardar(ctx.ruta(), f)
     sem, sep, ago = h.por_semana(date(2026, 9, 9)), h.por_mes(2026, 9), h.por_mes(2026, 8)
-    return ((len(sem), len(sep), len(ago)) == (2, 2, 1),
-            f"3 rutas guardadas.\nSemana del 7 al 13 de septiembre: {len(sem)}\n"
-            f"Septiembre 2026: {len(sep)}\nAgosto 2026: {len(ago)}")
+    return (len(sem), len(sep), len(ago)) == (2, 2, 1), [
+        parrafo("Con 3 rutas guardadas, el filtro de calendario muestra:"),
+        tabla(["Filtro", "Rutas mostradas"],
+              [["Semana del 7 al 13 de septiembre", len(sem)], ["Septiembre de 2026", len(sep)], ["Agosto de 2026", len(ago)]])]
 
 
 def _hu11_c3(ctx: Contexto) -> Resultado:
-    msg = Historial().listar()
-    return msg == VACIO, f"Primer uso, base vacía: «{msg}»"
+    mensaje = Historial().listar()
+    return mensaje == VACIO, [aviso("info", mensaje, "Aparece la primera vez que se entra, cuando todavía no hay rutas guardadas.")]
 
 
 # ---------------------------------------------------------------- HU-12
@@ -350,13 +392,15 @@ def _hu12_c1(ctx: Contexto) -> Resultado:
     SALIDAS.mkdir(exist_ok=True)
     archivo = exportar_txt(ctx.ruta(), _lancha(), SALIDAS)
     contenido = archivo.read_text(encoding="utf-8")
-    return "Distancia total" in contenido, f"Archivo descargado: {archivo.as_posix()}\n\n{contenido}"
+    return "Distancia total" in contenido, [
+        pares(("Archivo descargado", archivo.name)), documento("Vista previa del archivo", contenido.splitlines())]
 
 
 def _hu12_c2(ctx: Contexto) -> Resultado:
     texto = generar_resumen(ctx.ruta(), _lancha())
-    ok = all(c in texto for c in ("Fecha:", "Hora de generación:", "Lancha asignada:"))
-    return ok, "Encabezado automático:\n" + "\n".join(texto.splitlines()[:5])
+    claves = ("Fecha:", "Hora de generación:", "Lancha asignada:")
+    cab = [l.split(": ", 1) for l in texto.splitlines() if l.startswith(claves)]
+    return len(cab) == 3, [parrafo("Encabezado automático del documento:"), pares(*cab)]
 
 
 def _hu12_c3(ctx: Contexto) -> Resultado:
@@ -364,12 +408,12 @@ def _hu12_c3(ctx: Contexto) -> Resultado:
         try:
             exportar_txt(ctx.ruta(), _lancha(), SALIDAS)
         except ErrorExportacion as e:
-            return True, f"Error de permisos simulado.\nALERTA: {e}"
-    return False, "No se mostró la alerta de permisos"
+            return True, [aviso("rojo", "No se pudo guardar el archivo", str(e))]
+    return False, [aviso("rojo", "No se mostró la alerta de permisos")]
 
 
 # ---------------------------------------------------------------- HU-13
-def _auditoria(ctx: Contexto):
+def _auditoria(ctx: Contexto) -> Auditoria:
     ruta = ctx.ruta()
     ejecutada = omitir_por_clima(ruta, ruta.puntos[1].nombre)
     a = Auditoria()
@@ -380,26 +424,32 @@ def _auditoria(ctx: Contexto):
 
 def _hu13_c1(ctx: Contexto) -> Resultado:
     entradas = _auditoria(ctx).buscar_por_fecha(date.today())
-    e = entradas[0] if entradas else None
-    return (len(entradas) == 1,
-            f"Registro creado en segundo plano: {e.momento:%Y-%m-%d %H:%M:%S} | usuario {e.usuario} | {e.accion}"
-            if e else "No se creó el registro")
+    if len(entradas) != 1:
+        return False, [aviso("rojo", "No se creó el registro")]
+    e = entradas[0]
+    return True, [parrafo("El sistema creó este registro en segundo plano:"),
+                  pares(("Fecha y hora", f"{e.momento:%Y-%m-%d %H:%M:%S}"), ("Usuario", e.usuario),
+                        ("Acción", e.accion), ("Visible para el operador", "No"))]
 
 
 def _hu13_c2(ctx: Contexto) -> Resultado:
-    tabla = _auditoria(ctx).tabla_comparativa(date.today())
-    return len(tabla.splitlines()) == 2, tabla
+    entradas = _auditoria(ctx).buscar_por_fecha(date.today())
+    filas = [[f"{e.momento:%Y-%m-%d %H:%M:%S}", e.usuario, e.accion, " > ".join(e.ruta_planificada),
+              " > ".join(e.ruta_ejecutada)] for e in entradas]
+    return len(filas) == 1, [tabla(
+        ["Fecha y hora", "Usuario", "Acción", "Ruta planificada inicialmente", "Ruta ejecutada"], filas)]
 
 
 def _hu13_c3(ctx: Contexto) -> Resultado:
     a = _auditoria(ctx)
+    mensaje = ""
     for accion in (a.eliminar, a.modificar):
         try:
             accion(0)
-            return False, "El sistema permitió alterar un registro"
+            return False, [aviso("rojo", "El sistema permitió alterar un registro")]
         except PermissionError as e:
-            msg = str(e)
-    return True, f"Intento de eliminar/modificar bloqueado.\n{msg}"
+            mensaje = str(e)
+    return True, [aviso("rojo", "Acceso denegado", mensaje)]
 
 
 # ---------------------------------------------------------------- HU-14
@@ -414,8 +464,10 @@ def _muelles(ctx: Contexto) -> Muelles:
 def _hu14_c1(ctx: Contexto) -> Resultado:
     plan = _muelles(ctx).planificar(ctx.copia())
     mejor = min(plan.distancias_km, key=plan.distancias_km.get)
-    lineas = [f"- {n}: {d:.2f} km" for n, d in plan.distancias_km.items()]
-    return plan.sugerido == mejor, "Ruta calculada desde los 3 muelles:\n" + "\n".join(lineas) + f"\nSugerido: {plan.sugerido}"
+    filas = [[n, f"{d:.2f} km", celda("Sugerido", "verde") if n == plan.sugerido else ""]
+             for n, d in plan.distancias_km.items()]
+    return plan.sugerido == mejor, [parrafo("Ruta calculada desde los 3 muelles guardados:"),
+                                    tabla(["Muelle de salida", "Distancia total", "Resultado"], filas)]
 
 
 def _hu14_c2(ctx: Contexto) -> Resultado:
@@ -423,15 +475,15 @@ def _hu14_c2(ctx: Contexto) -> Resultado:
     sugerido = plan.sugerido
     destino = "Muelle Sur" if sugerido != "Muelle Sur" else "Muelle Norte"
     plan.forzar(destino)
-    return plan.elegido == destino, f"Sugerido: {sugerido}\nSalida forzada desde: {plan.elegido}"
+    return plan.elegido == destino, [pares(("Muelle sugerido", sugerido), ("Salida forzada desde", plan.elegido))]
 
 
 def _hu14_c3(ctx: Contexto) -> Resultado:
     try:
         Muelles().registrar("Muelle lejano", 20.0, -60.0)
     except ValueError as e:
-        return True, f"Registro bloqueado: «{e}»"
-    return False, "El sistema aceptó un muelle fuera de la jurisdicción"
+        return True, [aviso("rojo", str(e), "El muelle no se guardó porque está fuera de los límites marítimos de la jurisdicción.")]
+    return False, [aviso("rojo", "El sistema aceptó un muelle fuera de la jurisdicción")]
 
 
 # ------------------------------------------------------------ catálogo
@@ -527,11 +579,21 @@ HISTORIAS = [
 ]
 
 
-def ejecutar_criterio(funcion: Callable[[Contexto], Resultado], ctx: Contexto) -> Resultado:
+
+
+def ejecutar_bloques(funcion: Callable[[Contexto], Resultado], ctx: Contexto) -> tuple[bool, list[dict]]:
+    """Ejecuta un criterio y devuelve (cumple, bloques de contenido)."""
     try:
-        return funcion(ctx)
+        ok, contenido = funcion(ctx)
     except Exception as e:  # el simulador debe mostrar el fallo, no cerrarse
-        return False, f"Error inesperado: {type(e).__name__}: {e}"
+        return False, [aviso("rojo", "Error inesperado", f"{type(e).__name__}: {e}")]
+    return ok, ([parrafo(contenido)] if isinstance(contenido, str) else contenido)
+
+
+def ejecutar_criterio(funcion: Callable[[Contexto], Resultado], ctx: Contexto) -> tuple[bool, str]:
+    """Igual que ejecutar_bloques, pero con el contenido en texto plano."""
+    ok, bloques = ejecutar_bloques(funcion, ctx)
+    return ok, a_texto(bloques)
 
 
 def ejecutar_todos(ctx: Contexto) -> list[tuple[str, int, str, bool, str]]:
