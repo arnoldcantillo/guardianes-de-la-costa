@@ -32,7 +32,7 @@ from .hu11_historial import VACIO, Historial
 from .hu12_exportar import ErrorExportacion, exportar_txt, generar_resumen
 from .hu13_auditoria import Auditoria
 from .hu14_muelles import Muelles
-from .nucleo import OMITIDO, TIPOS_RESIDUO, Embarcacion, Punto
+from .nucleo import OMITIDO, TIPOS_RESIDUO, Embarcacion, Punto, tramos_ruta
 
 SALIDAS = Path("salidas")
 Resultado = tuple[bool, "str | list[dict]"]
@@ -70,6 +70,15 @@ def _ruta_completada(ctx: Contexto):
         jornada.completar_punto(p.nombre, 10 * (i + 1), TIPOS_RESIDUO[i % 3])
     jornada.cerrar_jornada()
     return ruta
+
+
+def tabla_tramos(ruta) -> dict:
+    """Cada tramo con el camino mínimo que encontró Dijkstra en el grafo de navegación."""
+    filas = []
+    for t in tramos_ruta(ruta.base, ruta.puntos):
+        via = " → ".join(p.nombre for p in t["pasa_por"]) or "directo"
+        filas.append([f"{t['desde'].nombre} → {t['hasta'].nombre}", via, f"{t['km']:.2f} km"])
+    return tabla(["Tramo", "Pasa por (Dijkstra)", "Distancia"], filas)
 
 
 def tabla_ruta(ruta) -> dict:

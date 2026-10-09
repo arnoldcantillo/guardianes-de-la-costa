@@ -2,8 +2,6 @@
 
 **Equipo:** Guardianes de la costera · Taller Scrum · Ingeniería de Sistemas
 
-**Integrantes:** Kemmell Cabanna · Arnold Cantillo · Jaider Lozano · Sebastian Murcia · Johan Viviescas
-
 Herramienta para planificar la ruta más corta con la que una lancha recolecta residuos acuáticos acumulados en dársenas, muelles y desembocaduras.
 
 > **Simulador en vivo:** https://arnoldcantillo.github.io/guardianes-de-la-costa/
@@ -87,7 +85,7 @@ index.html            Simulador web (GitHub Pages)
 simulador.py          Simulador de escritorio (opcional)
 main.py               Demostración en consola
 guardianes/
-  nucleo.py           Distancias, algoritmo de ruta y modelos compartidos
+  nucleo.py           Grafo de navegación, Dijkstra, algoritmo de ruta y modelos compartidos
   hu01_... a hu14_... Una historia de usuario por módulo
   escenarios.py       Un escenario ejecutable por cada criterio de aceptación
   web_api.py          Capa que conecta el código Python con la página web
@@ -96,7 +94,7 @@ tests/                Pruebas unitarias
 
 ## Cómo funciona la ruta
 
-La distancia entre puntos se calcula con la fórmula de Haversine (km). El orden de visita se obtiene con el algoritmo del vecino más cercano, mejorado con 2-opt, y la ruta siempre parte y termina en la base. El ahorro se mide frente al recorrido en el orden en que se ingresaron los puntos (el recorrido empírico).
+La base del cálculo de rutas es el **algoritmo de Dijkstra**. Los puntos de acumulación y la base forman un grafo no dirigido: cada nodo se conecta con sus 2 vecinos más cercanos y el peso de cada arista es la distancia Haversine (km); si quedan zonas aisladas, se unen por la arista más corta. Dijkstra calcula el camino mínimo entre cada par de nodos y esas distancias se usan para ordenar la visita (vecino más cercano, mejorado con 2-opt). La ruta siempre parte y termina en la base. En la página, el mapa dibuja el grafo y el camino de Dijkstra, y una tabla muestra por dónde pasa cada tramo. El ahorro se mide frente al recorrido en el orden en que se ingresaron los puntos (el recorrido empírico).
 
 ## Notas
 

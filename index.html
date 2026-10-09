@@ -390,7 +390,7 @@ function vistaHistoria(i) {
 
 /* -------------------------------------------------------------- escenario */
 function mapaSVG(m) {
-  const todos = [m.base, ...m.ruta];
+  const todos = [m.base, ...m.ruta, ...(m.camino || [])];
   const lats = todos.map((p) => p.lat), lons = todos.map((p) => p.lon);
   const [la0, la1, lo0, lo1] = [Math.min(...lats), Math.max(...lats), Math.min(...lons), Math.max(...lons)];
   const W = 520, H = 440, pad = 62;
@@ -403,7 +403,8 @@ function mapaSVG(m) {
     svg.append(s("line", { x1: pad + (k * (W - 2 * pad)) / 4, x2: pad + (k * (W - 2 * pad)) / 4, y1: 18, y2: H - 18, class: "rejilla" }));
     svg.append(s("line", { x1: 18, x2: W - 18, y1: pad + (k * (H - 2 * pad)) / 4, y2: pad + (k * (H - 2 * pad)) / 4, class: "rejilla" }));
   }
-  const camino = [m.base, ...m.ruta, m.base].map((p) => `${x(p.lon)},${y(p.lat)}`).join(" ");
+  (m.aristas || []).forEach(([a, b]) => svg.append(s("line", { x1: x(a.lon), y1: y(a.lat), x2: x(b.lon), y2: y(b.lat), stroke: "var(--tinta)", "stroke-opacity": 0.3, "stroke-width": 1.2, "stroke-dasharray": "4 4" })));
+  const camino = (m.camino || [m.base, ...m.ruta, m.base]).map((p) => `${x(p.lon)},${y(p.lat)}`).join(" ");
   svg.append(s("polyline", { points: camino, fill: "none", stroke: "var(--senal)", "stroke-width": 8, "stroke-linejoin": "round", "stroke-linecap": "round" }));
   svg.append(s("polyline", { points: camino, fill: "none", stroke: "var(--tinta)", "stroke-width": 2, "stroke-linejoin": "round" }));
   const etiqueta = (px, py, texto, negrita) => {
@@ -428,7 +429,7 @@ function vistaEscenario() {
   const pintar = (r) => {
     salida.replaceChildren(pintarBloques(r.bloques));
     if (r.mapa) ultimoMapa = r.mapa;
-    mapaCol.replaceChildren(...(ultimoMapa ? [mapaSVG(ultimoMapa), el("p", { class: "pie-mapa" }, "Esquema de la ruta óptima. Los números indican el orden de visita; el rombo es la base.")] : []));
+    mapaCol.replaceChildren(...(ultimoMapa ? [mapaSVG(ultimoMapa), el("p", { class: "pie-mapa" }, "Esquema de la ruta óptima. La línea gruesa sigue los caminos mínimos de Dijkstra sobre el grafo (líneas punteadas = conexiones entre vecinos más cercanos). Los números indican el orden de visita y el rombo es la base.")] : []));
   };
   const campo = (id, etiqueta, valor, alActualizar) => el("div", { class: "campo" }, el("label", { for: id }, etiqueta),
     el("input", { type: "text", id, value: valor, autocomplete: "off", oninput: (e) => alActualizar(e.target.value) }));

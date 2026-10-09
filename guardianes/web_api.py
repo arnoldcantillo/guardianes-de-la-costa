@@ -5,9 +5,9 @@ import base64
 import json
 
 from .bloques import aviso, lista, pares, tabla
-from .escenarios import HISTORIAS, SALIDAS, Contexto, ejecutar_bloques, tabla_ruta
+from .escenarios import HISTORIAS, SALIDAS, Contexto, ejecutar_bloques, tabla_ruta, tabla_tramos
 from .hu08_validacion import validar_entrada
-from .nucleo import Punto
+from .nucleo import Grafo, Punto, tramos_ruta
 
 MIME = {".pdf": "application/pdf", ".txt": "text/plain"}
 
@@ -39,9 +39,19 @@ def aplicar_escenario(escenario_json: str) -> str:
     ruta = ctx.ruta()
     bloques = [aviso("verde", "Escenario aplicado", "Las pruebas de las historias usarán estos datos."),
                tabla_ruta(ruta),
+               tabla_tramos(ruta),
                pares(("Base", ctx.base.nombre), ("Distancia total", f"{ruta.distancia_km:.2f} km"))]
+    camino = [ruta.base]
+    for t in tramos_ruta(ruta.base, ruta.puntos):
+        camino.extend(t["nodos"][1:])
+    grafo = Grafo([ruta.base, *ruta.puntos])
+    aristas = [[{"lat": grafo.nodos[i].lat, "lon": grafo.nodos[i].lon},
+                {"lat": grafo.nodos[j].lat, "lon": grafo.nodos[j].lon}]
+               for i in range(len(grafo.nodos)) for j in grafo.ady[i] if i < j]
     mapa = {"base": {"nombre": ctx.base.nombre, "lat": ctx.base.lat, "lon": ctx.base.lon},
-            "ruta": [{"nombre": p.nombre, "lat": p.lat, "lon": p.lon} for p in ruta.puntos]}
+            "ruta": [{"nombre": p.nombre, "lat": p.lat, "lon": p.lon} for p in ruta.puntos],
+            "camino": [{"lat": p.lat, "lon": p.lon} for p in camino],
+            "aristas": aristas}
     return json.dumps({"ok": True, "bloques": bloques, "mapa": mapa}, ensure_ascii=False)
 
 
