@@ -8,6 +8,16 @@ Herramienta para planificar la ruta más corta con la que una lancha recolecta r
 > **Simulador en vivo:** https://arnoldcantillo.github.io/guardianes-de-la-costa/
 > Ejecuta las 14 historias de usuario y sus 42 criterios de aceptación directamente en el navegador.
 
+---
+
+## Video de Presentación
+
+En el siguiente video de 5 minutos, se expone la problemática, la aplicación del marco Scrum (Product Goal, Sprint Goal, DoD), la arquitectura algorítmica y la demostración práctica del simulador interactivo:
+
+**Enlace al video:** [https://youtu.be/5uOA8Eg503I](https://youtu.be/5uOA8Eg503I)
+
+---
+
 ## El producto
 
 **Problema.** Las autoridades portuarias y los operadores de canales fluviales recorren hoy las zonas de acumulación de residuos de manera empírica, sin una ruta planificada.
