@@ -1,0 +1,168 @@
+{
+  "exportedAt": "2026-10-08T23:23:27.952Z",
+  "product": {
+    "capacity": "31",
+    "productName": "optimizador de enrutamiento costero",
+    "primaryUser": "Entidades desaneamiento ambiental, autoridades gubernamentales degestión marina y cuadrillas de limpieza.",
+    "problem": "Actualmente, las autoridades portuarias y operadores de canales fluviales necesitan una forma de planificar la ruta más corta para recolectar residuos acuáticos acumulados en dársenas, muelles y desembocaduras, debido a que sus recorridos de limpieza en embarcaciones se ejecutan de manera empírica.",
+    "productGoal": "En los próximos meses, las autoridades portuarias y operadores de canales fluviales podrán planificar de manera automatizada y eficiente las rutas de navegación para la recolección de residuos acuáticos, logrando reducir los tiempos operativos, los costos logísticos y el consumo de combustible en cada jornada de saneamiento.",
+    "teamName": "guardianes de la costera",
+    "po": "johan vivisescas",
+    "developers": "Arnold Cantillo,Jaider Lozano, kemmell cabana, SebastiánMurcia,Johan Viviescas.",
+    "sm": "jaider lozano",
+    "sprintGoal": "Al finalizar el Sprint, planificar de forma automatizada las rutas de navegación para la recolección de residuos, optimizando el tiempo y reduciendo el consumo de combustible.",
+    "improvementOwner": "jaider lozano",
+    "improvement": "Para el próximo Sprint, las mejoras prioritarias consisten en desarrollar el módulo de asignación de rutas a cuadrillas, evolucionar el algoritmo de enrutamiento para evadir obstáculos terrestres e integrar mapas geográficos interactivos en la interfaz. Asimismo, a nivel técnico y logístico, se automatizará la validación de los criterios de aceptación mediante GitHub Actions y se habilitará la exportación de trayectos calculados para medir el ahorro real de combustible en la operación diaria."
+  },
+  "completedStations": [
+    "reto",
+    "agil",
+    "scrum",
+    "herramientas",
+    "backlog",
+    "eventos",
+    "sprint"
+  ],
+  "productBacklog": [
+    {
+      "order": 1,
+      "story": "Como coordinador logístico de saneamiento, quiero asignar una ruta generada a una cuadrilla específica para llevar el control de qué equipo está ejecutando la limpieza",
+      "priority": "Alta",
+      "points": 8,
+      "acceptanceCriteria": "Criterio 1: Dado que estoy viendo los detalles de una ruta óptima, cuando presione \"Asignar Cuadrilla\", entonces se desplegará una lista de los equipos operativos disponibles.  Criterio 2: Dado que asigno la ruta a la Cuadrilla Alfa, cuando consulte el panel general, entonces el estado de esa cuadrilla debe cambiar de \"Disponible\" a \"En Operación\".  Criterio 3: Dado que intento asignar una ruta a una cuadrilla que ya está \"En Operación\", cuando confirme la acción, entonces el sistema debe rechazar la asignación mostrando un mensaje de advertencia.",
+      "status": "ready"
+    },
+    {
+      "order": 2,
+      "story": "Como operador de canales fluviales, quiero ingresar las coordenadas de la base y los puntos de acumulación de residuos en el sistema para que la aplicación calcule de manera automatizada la ruta de navegación más corta",
+      "priority": "Alta",
+      "points": 5,
+      "acceptanceCriteria": "Criterio 1: Dado que el operador ingresa coordenadas de origen y destinos válidas, cuando presione calcular, entonces el sistema debe generar y mostrar la ruta óptima de navegación basada en el grafo.  Criterio 2: Dado que el operador ingresa coordenadas que caen fuera del área navegable mapeada, cuando intente calcular la ruta, entonces el sistema debe bloquear la acción y mostrar un mensaje de error de \"Coordenadas fuera de límite\".  Criterio 3: Dado que el sistema está calculando la ruta con hasta 50 puntos de recolección, cuando se ejecute el algoritmo, entonces el resultado debe generarse y mostrarse en pantalla en un tiempo máximo de 2 segundos.",
+      "status": "progress"
+    },
+    {
+      "order": 3,
+      "story": "Como director de sostenibilidad portuaria, quiero visualizar un panel de control con los totales acumulados de combustible ahorrado y plástico retirado mensualmente para presentar informes de los Objetivos de Desarrollo Sostenible (ODS)",
+      "priority": "Media",
+      "points": 8,
+      "acceptanceCriteria": "Criterio 1: Dado que ingreso al panel de control, cuando seleccione un mes del año, entonces veré un gráfico de barras comparando el gasto de combustible real frente al gasto si no se usara el optimizador.  Criterio 2: Dado que consulto un mes donde no hubo jornadas de limpieza, cuando cargue la gráfica, entonces el sistema mostrará los valores en cero sin que la aplicación colapse.  Criterio 3: Dado que el panel ha cargado los datos correctamente, cuando presione el botón \"Generar PDF\", entonces se descargará un documento con las gráficas exactas que estoy viendo en pantalla.",
+      "status": "progress"
+    },
+    {
+      "order": 4,
+      "story": "Como entidad de saneamiento, quiero conocer el ahorro estimado frente al recorrido empírico para justificar el uso de la herramienta",
+      "priority": "Media",
+      "points": 5,
+      "acceptanceCriteria": "Criterio 1: Dado una ruta calculada, cuando la comparo con el orden de ingreso, entonces se muestra el porcentaje de ahorro de distancia y si alcanza la meta de 15% a 20%.  Criterio 2: Dado que el trayecto empírico (ingresado manualmente) y la ruta calculada por el sistema son exactamente iguales, cuando se genere el reporte, entonces el sistema debe indicar que el ahorro es del 0% y confirmar que la ruta actual es óptima.  Criterio 3: Dado que visualizo el resumen de la ruta, cuando revise los indicadores en pantalla, entonces el ahorro estimado de combustible debe mostrarse de forma clara en unidades volumétricas (litros o galones).",
+      "status": "review"
+    },
+    {
+      "order": 5,
+      "story": "Como capitán de lancha recolectora, quiero poder omitir un punto de recolección en pleno recorrido si las condiciones de marea impiden el acceso para que el sistema me recalcule el resto del viaje",
+      "priority": "Media",
+      "points": 5,
+      "acceptanceCriteria": "Criterio 1: Dado que la ruta está en curso, cuando seleccione un nodo intermedio y presione \"Omitir por clima\", entonces el sistema debe recalcular la distancia y unir el nodo anterior con el siguiente.  Criterio 2: Dado que se omite un nodo de la ruta, cuando esta se guarde en el historial, entonces dicho punto deberá aparecer tachado o etiquetado como \"Omitido\" (no como completado).  Criterio 3: Dado que el capitán intenta omitir el nodo de origen (la base) o el nodo final, cuando presione el botón, entonces el sistema debe bloquear la acción indicando que son puntos fijos obligatorios.",
+      "status": "review"
+    },
+    {
+      "order": 6,
+      "story": "Como operador de canales fluviales, quiero seleccionar el tipo de embarcación y su consumo promedio de combustible en el sistema para que el cálculo del ahorro energético y logístico se ajuste a la lancha utilizada en la jornada",
+      "priority": "Media",
+      "points": 3,
+      "acceptanceCriteria": "Criterio 1: Dado que selecciono una lancha de tipo estándar, cuando ejecuto el cálculo de la ruta, entonces el sistema multiplica la distancia del grafo por el factor de consumo específico de esa embarcación.  Criterio 2: Dado que el operador no selecciona ninguna embarcación de la lista, cuando intente generar la ruta, entonces el sistema debe utilizar una \"Lancha Estándar\" por defecto y notificar al usuario.  Criterio 3: Dado que se necesita utilizar una lancha nueva, cuando el operador ingrese el nombre, modelo y consumo por kilómetro, entonces la embarcación debe quedar guardada permanentemente en el catálogo para futuros cálculos.",
+      "status": "review"
+    },
+    {
+      "order": 7,
+      "story": "Como analista ambiental, quiero registrar la cantidad (en kg) de residuos recolectados en cada punto de la ruta para poder generar estadísticas del volumen de contaminación",
+      "priority": "Media",
+      "points": 3,
+      "acceptanceCriteria": "Criterio 1: Dado que la lancha finalizó la limpieza de un punto, cuando se marque como completado, entonces aparecerá un campo obligatorio para ingresar el peso en kilogramos extraídos.  Criterio 2: Dado que el analista intenta ingresar un valor negativo o letras en el campo de peso, cuando intente guardar, entonces el sistema arrojará un error de \"Formato inválido\".  Criterio 3: Dado que se ha terminado toda la ruta, cuando se cierre la jornada en el sistema, entonces se debe calcular y mostrar el sumatorio total de kilogramos recolectados.",
+      "status": "review"
+    },
+    {
+      "order": 8,
+      "story": "Como vigia de la embarcacion, quiero que se validen mis datos de entrada para evitar resultados erróneos para asegurar la integridad de los cálculos del sistema",
+      "priority": "Media",
+      "points": 3,
+      "acceptanceCriteria": "Criterio 1: Dado un dato vacío, duplicado o fuera de rango, cuando intento calcular la ruta, entonces el sistema muestra qué dato falló y no ejecuta el cálculo.  Criterio 2: Dado que ingreso un formato de coordenadas con letras o caracteres especiales no permitidos, cuando presiono validar, entonces el sistema debe bloquear el campo y notificar el error de sintaxis de inmediato.  Criterio 3: Dado que se completan todos los campos de entrada de manera correcta, cuando presiono el botón de guardar datos, entonces el sistema debe habilitar el botón de cálculo general sin arrojar advertencias.",
+      "status": "review"
+    },
+    {
+      "order": 9,
+      "story": "Como supervisor de flota marina, quiero que el sistema me advierta si la distancia del recorrido calculado excede la capacidad máxima del tanque de la lancha seleccionada para evitar que la embarcación quede varada",
+      "priority": "Media",
+      "points": 2,
+      "acceptanceCriteria": "Criterio 1: Dado que el consumo total estimado de la ruta supera el 100% del tanque de la embarcación seleccionada, cuando se presione calcular, entonces el sistema mostrará un banner rojo de \"Peligro: Combustible Insuficiente\".  Criterio 2: Dado que la alerta de combustible rojo se activa, cuando el supervisor la lea, entonces el sistema le sugerirá dividir la ruta en dos días o cambiar a una lancha de mayor capacidad.  Criterio 3: Dado que el consumo estimado de la ruta se encuentra entre el 85% y el 99% de la capacidad del tanque, cuando se genere la ruta, entonces se mostrará una alerta preventiva de color amarillo indicando \"Nivel de combustible al límite\".",
+      "status": "ready"
+    },
+    {
+      "order": 10,
+      "story": "Como analista ambiental, quiero etiquetar cada punto de recolección con el tipo de residuo predominante (plásticos, madera, metales) para entender qué tipo de contaminación afecta más cada sector",
+      "priority": "Baja",
+      "points": 8,
+      "acceptanceCriteria": "Criterio 1: Dado que un punto se marca como completado, cuando se habilite la ventana de peso, entonces habrá un menú desplegable obligatorio con las opciones: \"Plásticos\", \"Maderas/Orgánicos\" y \"Metales/Vidrios\".  Criterio 2: Dado que busco en el historial, cuando use el filtro de \"Plásticos\", entonces la vista solo me mostrará las rutas y los nodos donde el plástico fue categorizado como residuo predominante.  Criterio 3: Dado que se registra el final del trayecto, cuando se exporte el reporte de la autoridad portuaria, entonces este debe desglosar qué porcentaje del peso total correspondió a cada tipo de material.",
+      "status": "done"
+    },
+    {
+      "order": 11,
+      "story": "Como operador de canales fluviales, quiero consultar un historial de rutas generadas previamente en el sistema para comparar los trayectos ejecutados en semanas anteriores",
+      "priority": "Baja",
+      "points": 5,
+      "acceptanceCriteria": "Criterio 1: Dado que existen registros guardados, cuando accedo a la sección de historial, entonces puedo visualizar la lista con fechas, distancias y puntos de recolección anteriores.  Criterio 2: Dado que el historial contiene cientos de registros, cuando el operador aplique el filtro de calendario, entonces la vista debe actualizarse para mostrar únicamente los recorridos de la semana o mes seleccionado.  Criterio 3: Dado que la base de datos de rutas está vacía (primer uso), cuando el operador entre a la sección de historial, entonces el sistema debe mostrar un mensaje amigable indicando \"No hay rutas registradas hasta el momento\".",
+      "status": "done"
+    },
+    {
+      "order": 12,
+      "story": "Como autoridad portuaria, quiero exportar un resumen en formato de texto con los detalles de la ruta óptima calculada para adjuntarlo formalmente a los informes operativos de las jornadas de saneamiento",
+      "priority": "Baja",
+      "points": 3,
+      "acceptanceCriteria": "Criterio 1: Dado que la ruta ha sido generada con éxito, cuando presiono el botón de exportar, entonces se descarga un archivo de texto con las coordenadas y distancias totales.  Criterio 2: Dado que el archivo de texto se ha exportado, cuando la autoridad portuaria lo abra, entonces el documento debe contener un encabezado automático que incluya la fecha, hora de generación y la lancha asignada.  Criterio 3: Dado que ocurre un error de permisos en el sistema operativo durante la descarga, cuando se presione exportar, entonces la aplicación debe mostrar una alerta sugiriendo cambiar la carpeta de destino.",
+      "status": "done"
+    },
+    {
+      "order": 13,
+      "story": "Como autoridad portuaria, quiero un registro de auditoría que guarde cualquier alteración manual hecha por los operadores a las rutas aprobadas para mantener la transparencia en el uso de los recursos",
+      "priority": "Baja",
+      "points": 3,
+      "acceptanceCriteria": "Criterio 1: Dado que un capitán omite un punto o un coordinador cambia la lancha asignada, cuando el sistema guarde el cambio, entonces creará un registro de log invisible para ellos con la fecha, hora y usuario responsable.  Criterio 2: Dado que accedo a la pestaña exclusiva de \"Auditoría\", cuando busque una fecha, entonces veré una tabla que compara la \"Ruta planificada inicialmente\" versus la \"Ruta ejecutada\".  Criterio 3: Dado que intento eliminar o alterar un registro dentro del panel de auditoría, cuando seleccione esa opción, entonces el sistema denegará el acceso ya que los logs deben ser de solo lectura.",
+      "status": "progress"
+    },
+    {
+      "order": 14,
+      "story": "Como coordinador logístico de saneamiento, quiero registrar múltiples muelles de salida para que, al ingresar los puntos de basura para que el sistema me sugiera desde qué muelle es más corto despachar la lancha",
+      "priority": "Baja",
+      "points": 2,
+      "acceptanceCriteria": "Criterio 1: Dado que existen 3 muelles guardados en el sistema, cuando ingrese las coordenadas de la basura, entonces el algoritmo calculará la ruta desde los 3 y sugerirá automáticamente el que ofrezca menor distancia total.  Criterio 2: Dado que el sistema me sugiere el \"Muelle Norte\", cuando revise el plan, entonces tendré un menú desplegable que me permita forzar la salida desde el \"Muelle Sur\" si así lo deseo.  Criterio 3: Dado que intento guardar un nuevo muelle fuera de los límites marítimos de mi jurisdicción, cuando intente registrarlo, entonces el sistema me arrojará un error de \"Ubicación fuera de rango\".",
+      "status": "done"
+    }
+  ],
+  "definitionOfDone": [
+    "Criterios de aceptación verificados",
+    "Revisión de código aprobada",
+    "Sin defectos críticos conocidos",
+    "Documentación necesaria actualizada"
+  ],
+  "eventNotes": {
+    "planning": "Sprint Goal: Desarrollar el núcleo del sistema de navegación automatizada (optimizador de enrutamiento costero), implementando el cálculo de rutas óptimas mediante grafos y los primeros módulos de registro y simulación de ahorro de combustible\n\n\nCapacidad y Riesgos: Se cuenta con la capacidad completa del equipo para el desarrollo iterativo. Como riesgo principal se identificó la validación estricta de las coordenadas geográficas fuera de los límites navegables, mitigándolo con validaciones previas en la interfaz de usuario.Definition of Done (DoD): El incremento se considerará terminado únicamente cuando el código cumpla con las pruebas unitarias básicas, esté documentado, cuente con sus criterios de aceptación validados en BDD y funcione correctamente en la interfaz visual sin errores críticos.\n\nSelección de Historias y Descomposición: Se seleccionaron las Historias de Usuario del 1 al 5 (Cálculo automatizado de ruta, ahorro estimado, selección de embarcación, historial y exportación).El trabajo técnico se desglosó de manera colaborativa entre los miembros del equipo sin asignación autoritaria, priorizando la estructura lógica del motor de cálculo antes de las interfaces secundarias.",
+    "daily": "Avance hacia la meta: Se ha completado la configuración inicial del entorno de desarrollo y la estructuración base de las primeras historias del Backlog, alineando la lógica matemática de grafos con el objetivo del Sprint.\n\nObstáculos o riesgos: Ningún bloqueo técnico crítico por el momento; el principal desafío sigue siendo asegurar la precisión de las coordenadas geográficas dentro de los límites navegables establecidos.   \n\nAdaptación del plan para hoy: Se acordó enfocar el esfuerzo de los desarrolladores en programar la validación inicial de entradas de coordenadas antes de avanzar con la interfaz gráfica. \n\nConversaciones posteriores: Se agendó una sesión técnica breve de 15 minutos al finalizar la jornada para revisar en detalle el algoritmo base de cálculo de rutas sin alargar la Daily.",
+    "retro": "Seguridad Psicológica: Se fomentó un espacio de confianza enfocado en analizar los datos, procesos y flujos de trabajo sin buscar culpas personales.\n\nAnálisis de Experiencia (Ayudó, Dificultad y Sorprendió): Ayudó la claridad previa en la lógica de grafos; dificultó el ajuste inicial de las validaciones de coordenadas; y sorprendió gratamente la rapidez con la que se estructuró el Product Backlog completo.\n\nMejora de Alto Impacto: Se acordó estandarizar las revisiones técnicas diarias de código de 15 minutos para prevenir desvíos en la implementación del algoritmo.\n\nResponsable, Fecha y Éxito: El equipo de desarrollo asumió la responsabilidad de aplicar esta medida desde el próximo ciclo, midiendo el éxito a través de una reducción en los errores de integración de coordenadas.",
+    "review": "1. Contexto y Sprint Goal:\nSe inició la sesión recordando que la meta de este Sprint era lograr un incremento funcional capaz de procesar coordenadas de inicio y focos de residuos para calcular la ruta de recolección más eficiente, usando las estructuras de grafos.\n2. Demostrar el producto funcionando; \nSe demostró el producto funcionando en vivo mediante el simulador alojado en GitHub, el cual fue desarrollado en Python usando PyScript para ejecutarse en el navegador sin servidores externos. Para la demostración se ejecutó la historia de usuario HU02 (\"Ingresar coordenadas\"), evidenciando el uso de la fórmula de Haversine para calcular distancias esféricas. Se ingresó exitosamente el punto \"Puerto Mocho\" (Lat: 10.96, Lon: -74.81), demostrando cómo el sistema actualiza la gráfica, calcula la ruta óptima y asegura el retorno de la embarcación al muelle inicial. Asimismo, se probó la validación de seguridad ingresando coordenadas fuera de rango, donde el sistema bloqueó el cálculo y emitió el error correctamente.\n3. Comparación y Feedback:\nAl comparar el incremento con la meta, el simulador demostró calcular el trayecto y la distancia total de manera veloz y precisa. El principal hallazgo es que el incremento cumple íntegramente con la \"Definition of Done\" (DoD), logrando ejecutar y aprobar en vivo los 42 criterios de aceptación correspondientes a las historias de usuario. Se confirmó que todo el código cuenta con revisión por pares y documentación en el repositorio.\n4. Decisiones y Siguientes Pasos (Elementos de Backlog):\n Decisión 1 (Aceptación del Incremento): El Product Owner aprueba formalmente el incremento desarrollado, certificando que el simulador es funcional y resuelve el problema de los recorridos empíricos.\n Decisión 2 (Adaptación del Backlog): Con la lógica de cálculo satelital ya validada, se decide dar prioridad alta en el Product Backlog a la historia de usuario \"Asignar una ruta generada a una cuadrilla\" para el próximo ciclo de desarrollo.\n Decisión 3 (Mantenimiento del Gobierno Ágil): El Scrum Master garantizará que las prácticas de orden y transparencia aplicadas en este ciclo se mantengan como estándar para las próximas entregas de valo"
+  },
+  "evidence": [
+    "Product Goal y contexto del usuario",
+    "Product Backlog ordenado y estimado",
+    "Sprint Goal y capacidad del equipo",
+    "Tablero con historial de estados",
+    "Incremento demostrado en la Review",
+    "Feedback incorporado al backlog",
+    "Acción de mejora de la Retrospective"
+  ],
+  "quiz": {
+    "scrum": true,
+    "q0": 1,
+    "q1": 0,
+    "q3": 0,
+    "q2": 1
+  }
+}
